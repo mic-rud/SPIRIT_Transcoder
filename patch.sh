@@ -1,12 +1,26 @@
 HEADER="dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/include/PCCBitstreamWriter.h"
 
-FORWARD_DECLARATION="class SampleStreamV3CUnit;\\class SEI;\\classAtlasSequenceParameterSetRbsp;"
+FORWARD_DECLARATIONS=$(cat <<EOF
+class SampleStreamV3CUnit;
+class SEI;
+class AtlasSequenceParameterSetRbsp;
+class AtlasFrameParameterSetRbsp;
+class AtlasTileLayerRbsp;
+class VUIParameters;
+class HrdSubLayerParameters;
+class HrdParameters;
+class MaxCodedVideoResolution;
+class CoordinateSystemParameters;
+class ProfileToolsetConstraintsInformation;
+EOF
+)
 
-if ! grep -q "$FORWARD_DECLARATION" "$HEADER"; then
+# Only insert if one of them is missing (using the first as a proxy)
+if ! grep -q "class SampleStreamV3CUnit;" "$HEADER"; then
     sed -i '' "/namespace pcc {/a\\
-$FORWARD_DECLARATION
+$FORWARD_DECLARATIONS
 " "$HEADER"
-    echo "Inserted: $FORWARD_DECLARATION"
+    echo "Inserted forward declarations into $HEADER"
 else
-    echo "Already declared: $FORWARD_DECLARATION"
+    echo "Forward declarations already present in $HEADER"
 fi
