@@ -25,10 +25,5 @@ make
 ## Path V-PCC
 In order to generate bindings for the Bitstream Parsing, we need to patch V-PCC
 ```
-HEADER="dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/include/PCCBitstreamWriter.h"
-INCLUDE_LINE='#include "SampleStreamV3CUnit.h"'
-
-grep -q "$INCLUDE_LINE" "$HEADER" || sed -i '' "/#include \"PCCBitstreamCommon.h\"/a\\
-$INCLUDE_LINE
-" "$HEADER"
+./patch.sh
 ```
