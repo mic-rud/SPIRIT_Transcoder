@@ -9,10 +9,10 @@ configure_file(
 )
 
 add_library(bitstream_bindings MODULE ${BINDING_SOURCES})
-add_library(PccLibBitstreamReader STATIC
+add_library(PccLibBitstreamReader SHARED
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamReader/source/PCCBitstreamReader.cpp
 )
-add_library(PccLibBitstreamWriter STATIC
+add_library(PccLibBitstreamWriter SHARED
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/source/PCCBitstreamWriter.cpp
 )
 
