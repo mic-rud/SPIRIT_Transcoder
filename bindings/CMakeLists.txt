@@ -1,3 +1,6 @@
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(PYBIND11_FINDPYTHON ON)
+
 find_package(pybind11 REQUIRED)
 file(GLOB BINDING_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
@@ -8,27 +11,22 @@ configure_file(
     ${CMAKE_BINARY_DIR}/generated/PCCConfig.h
 )
 
-add_library(bitstream_bindings MODULE ${BINDING_SOURCES})
-add_library(PccLibBitstreamReader SHARED
-    ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamReader/source/PCCBitstreamReader.cpp
-)
-add_library(PccLibBitstreamWriter SHARED
-    ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/source/PCCBitstreamWriter.cpp
-)
+pybind11_add_module(bitstream_bindings ${BINDING_SOURCES})
 
-target_include_directories(PccLibBitstreamReader PUBLIC
+target_include_directories(bitstream_bindings PRIVATE
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamReader/include
-    ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamCommon/include
-    ${CMAKE_BINARY_DIR}/generated
-)
-target_include_directories(PccLibBitstreamWriter PUBLIC
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/include
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamCommon/include
+    ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/dependencies/HM-16.20+SCM-8.8/source/Lib/libmd5
     ${CMAKE_BINARY_DIR}/generated
 )
 
-target_link_libraries(bitstream_bindings
+set(MPEG_PCC_LIB_DIR ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/lib)
+
+target_link_libraries(bitstream_bindings PRIVATE
     pybind11::module
-    PccLibBitstreamReader
-    PccLibBitstreamWriter
+    ${MPEG_PCC_LIB_DIR}/libPccLibBitstreamReader.a
+    ${MPEG_PCC_LIB_DIR}/libPccLibBitstreamWriter.a
+    ${MPEG_PCC_LIB_DIR}/libPccLibBitstreamCommon.a
+    ${MPEG_PCC_LIB_DIR}/liblibmd5.a
 )
