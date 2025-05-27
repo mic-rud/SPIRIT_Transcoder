@@ -27,3 +27,9 @@ In order to generate bindings for the Bitstream Parsing, we need to patch V-PCC
 ```
 ./patch.sh
 ```
+
+## Sym-Link
+Add a symbolic link if the module is not found on import
+```
+ln -s /PATH/TO/build/bindings/bitstream_bindings.cpython-<pyversion>-x86_64-linux-gnu.so .venv/lib/python<pyversion>/site-packages/bitstream_bindings.so
+```
