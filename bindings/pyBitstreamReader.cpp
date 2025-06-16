@@ -12,9 +12,7 @@ using namespace pcc;
 void bind_PCCBitstreamReader(py::module& m) {
     py::class_<PCCBitstreamReader>(m, "PCCBitstreamReader")
         .def(py::init<>())
-        .def("decode", [](PCCBitstreamReader& self, SampleStreamV3CUnit& ssvu, PCCHighLevelSyntax& syntax) {
-            return self.decode(ssvu, syntax);
-        })
+        .def("decode", &PCCBitstreamReader::decode, py::arg("ssvu"), py::arg("syntax"), py::return_value_policy::reference_internal)
         .def_static("read", [](PCCBitstream& bitstream, SampleStreamV3CUnit& ssvu) {
             return PCCBitstreamReader::read(bitstream, ssvu);
         });
