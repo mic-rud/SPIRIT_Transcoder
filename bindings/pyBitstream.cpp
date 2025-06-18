@@ -12,7 +12,9 @@ void bind_PCCBitstream(py::module& m) {
         .def("initialize", py::overload_cast<const std::string&>(&PCCBitstream::initialize),py::arg("compressedStreamPath"),py::return_value_policy::reference_internal)
         .def("write", static_cast<bool (PCCBitstream::*)(const std::string&)>(&PCCBitstream::write), py::arg("compressedStreamPath"))
         .def("initialize", py::overload_cast<uint64_t>(&PCCBitstream::initialize),py::arg("bitStreamSize"))
-        .def("vector", &PCCBitstream::vector, py::return_value_policy::reference_internal);
+        .def("vector", &PCCBitstream::vector, py::return_value_policy::reference_internal)
+        .def("computeMD5", &PCCBitstream::computeMD5) //not working :(
+        ;
 
     py::class_<PCCBitstreamStat>(m, "PCCBitstreamStat")
         .def(py::init<>())

@@ -35,7 +35,8 @@ void bind_commons(py::module& m) {
         .def("setActiveVpsId", &PCCContext::setActiveVpsId, py::arg("val"), py::return_value_policy::reference_internal)
         .def("checkProfile", &PCCContext::checkProfile, py::return_value_policy::reference_internal)
         .def("resizeAtlas", &PCCContext::resizeAtlas, py::arg("size"))
-        .def("getVps", static_cast<V3CParameterSet&(PCCHighLevelSyntax::*)()>(&PCCHighLevelSyntax::getVps), py::return_value_policy::reference_internal)
+        .def("getVps", static_cast<V3CParameterSet&(PCCContext::*)()>(&PCCContext::getVps), py::return_value_policy::reference_internal)
+        .def("getAtlasTileLayerList", &PCCContext::getAtlasTileLayerList, py::return_value_policy::reference_internal)
 
         ;
         
@@ -52,4 +53,43 @@ void bind_commons(py::module& m) {
         .def("getAtlasCountMinus1", &V3CParameterSet::getAtlasCountMinus1, py::return_value_policy::reference_internal)
         ;
 
+    py::class_<PCCLogger>(m, "PCCLogger")
+        .def(py::init<>())
+        //to do
+        ;
+    
+    py::class_<AtlasTileLayerRbsp>(m, "AtlasTileLayerRbsp")
+        .def(py::init<>())
+        .def("getHeader", &AtlasTileLayerRbsp::getHeader, py::return_value_policy::reference_internal)
+        .def("getDataUnit", &AtlasTileLayerRbsp::getDataUnit, py::return_value_policy::automatic_reference)
+       ;
+
+    py::class_<AtlasTileHeader>(m, "AtlasTileHeader")
+        .def(py::init<>())
+        .def("getType", &AtlasTileHeader::getType, py::return_value_policy::reference_internal)
+        ;
+    
+    py::class_<AtlasTileDataUnit>(m, "AtlasTileDataUnit")
+        .def(py::init<>())
+        .def("addPatchInformationData",static_cast<PatchInformationData& (AtlasTileDataUnit::*)(uint8_t)>(&AtlasTileDataUnit::addPatchInformationData), py::arg("patchMode"))
+        ;
+
+    py::class_<PatchInformationData>(m, "PatchInformationData")
+        .def(py::init<>())
+        ;
+
+    py::enum_<PCCTileType>(m, "PCCTileType")
+        .value("P_TILE", P_TILE)
+        .value("I_TILE", I_TILE)
+        .value("SKIP_TILE", SKIP_TILE)
+        .value("RESERVED_3", RESERVED_3)
+        ;
+
+    py::enum_<PCCPatchModePTile>(m, "PCCPatchModePTile")
+        .value("P_END", P_END)
+        ;
+
+    py::enum_<PCCPatchModeITile>(m, "PCCPatchModeITile")
+        .value("I_END", I_END)
+        ;
 }
