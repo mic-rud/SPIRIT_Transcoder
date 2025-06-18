@@ -6,6 +6,9 @@
 #include "PCCSei.h"
 #include "PCCV3CParameterSet.h"
 #include <pybind11/stl.h>
+#include "PCCContext.h"
+#include <PCCFrameContext.h>
+
 
 namespace py = pybind11;
 using namespace pcc;
@@ -24,6 +27,17 @@ void bind_commons(py::module& m) {
         .def("addV3CParameterSet", static_cast<V3CParameterSet&(PCCHighLevelSyntax::*)(uint8_t)>(&PCCHighLevelSyntax::addV3CParameterSet), py::arg("index"), py::return_value_policy::reference_internal)
         .def("setAtlasIndex", &PCCHighLevelSyntax::setAtlasIndex, py::arg("atlId"))
         ;
+    
+    py::class_<PCCContext, PCCHighLevelSyntax>(m, "PCCContext")
+        .def(py::init<>())
+        .def("addV3CParameterSet", static_cast<V3CParameterSet&(PCCContext::*)(uint8_t)>(&PCCContext::addV3CParameterSet), py::arg("index"), py::return_value_policy::reference_internal)
+        .def("setBitstreamStat", &PCCContext::setBitstreamStat, py::arg("PCCBitstreamStat&"))
+        .def("setActiveVpsId", &PCCContext::setActiveVpsId, py::arg("val"), py::return_value_policy::reference_internal)
+        .def("checkProfile", &PCCContext::checkProfile, py::return_value_policy::reference_internal)
+        .def("resizeAtlas", &PCCContext::resizeAtlas, py::arg("size"))
+        .def("getVps", static_cast<V3CParameterSet&(PCCHighLevelSyntax::*)()>(&PCCHighLevelSyntax::getVps), py::return_value_policy::reference_internal)
+
+        ;
         
     py::class_<SampleStreamV3CUnit>(m, "PCCSampleStreamV3CUnit")
         .def(py::init<>())
@@ -34,6 +48,8 @@ void bind_commons(py::module& m) {
     py::class_<SampleStreamNalUnit>(m, "PCCSampleStreamNalUnit") .def(py::init<>());
 
     py::class_<V3CParameterSet>(m, "V3CParameterSet")
-        .def(py::init<>());
+        .def(py::init<>())
+        .def("getAtlasCountMinus1", &V3CParameterSet::getAtlasCountMinus1, py::return_value_policy::reference_internal)
+        ;
 
 }

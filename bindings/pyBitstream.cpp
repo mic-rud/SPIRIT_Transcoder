@@ -19,7 +19,9 @@ void bind_PCCBitstream(py::module& m) {
         .def("setHeader", &PCCBitstreamStat::setHeader, py::arg("size"))
         .def("incrHeader", &PCCBitstreamStat::incrHeader, py::arg("size"))
         .def("setV3CUnitSize", &PCCBitstreamStat::setV3CUnitSize, py::arg("type"), py::arg("size"))
-        .def("getV3CUnitSize", &PCCBitstreamStat::getV3CUnitSize, py::arg("type"), py::return_value_policy::reference_internal);
+        .def("getV3CUnitSize", &PCCBitstreamStat::getV3CUnitSize, py::arg("type"), py::return_value_policy::reference_internal)
+        .def("trace", &PCCBitstreamStat::trace, py::arg("byGOF "))
+        ;
 
     py::enum_<V3CUnitType>(m, "V3CUnitType")
         .value("V3C_VPS", V3C_VPS)

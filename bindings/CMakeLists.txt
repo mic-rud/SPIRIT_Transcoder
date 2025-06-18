@@ -8,6 +8,7 @@ file(GLOB BINDING_SOURCES
 
 configure_file(
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamCommon/include/PCCConfig.h.in
+    ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibCommon/include/PCCConfig.h.in
     ${CMAKE_BINARY_DIR}/generated/PCCConfig.h
 )
 
@@ -17,6 +18,7 @@ target_include_directories(bitstream_bindings PRIVATE
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamReader/include
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/include
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamCommon/include
+    ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/source/lib/PccLibCommon/include
     ${CMAKE_SOURCE_DIR}/dependencies/mpeg-pcc-tmc2/dependencies/HM-16.20+SCM-8.8/source/Lib/libmd5
     ${CMAKE_BINARY_DIR}/generated
 )
@@ -28,5 +30,6 @@ target_link_libraries(bitstream_bindings PRIVATE
     ${MPEG_PCC_LIB_DIR}/libPccLibBitstreamReader.a
     ${MPEG_PCC_LIB_DIR}/libPccLibBitstreamWriter.a
     ${MPEG_PCC_LIB_DIR}/libPccLibBitstreamCommon.a
+    ${MPEG_PCC_LIB_DIR}/libPccLibCommon.a
     ${MPEG_PCC_LIB_DIR}/liblibmd5.a
 )
