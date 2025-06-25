@@ -36,10 +36,11 @@ void bind_commons(py::module& m) {
         .def("setBitstreamStat", &PCCContext::setBitstreamStat, py::arg("PCCBitstreamStat&"))
         //.def("setActiveVpsId", &PCCContext::setActiveVpsId, py::arg("val"), py::return_value_policy::reference_internal)
         .def("checkProfile", &PCCContext::checkProfile, py::return_value_policy::reference_internal)
-        //.def("resizeAtlas", &PCCContext::resizeAtlas, py::arg("size"))
-        //.def("getVps", static_cast<V3CParameterSet&(PCCContext::*)()>(&PCCContext::getVps), py::return_value_policy::reference_internal)
+        .def("resizeAtlas", &PCCContext::resizeAtlas, py::arg("size"))
+        .def("getVps", static_cast<V3CParameterSet&(PCCContext::*)()>(&PCCContext::getVps), py::return_value_policy::reference_internal)
         .def("getAtlasTileLayerList", &PCCContext::getAtlasTileLayerList, py::return_value_policy::reference_internal)
         //.def("getV3CUnitHeaderAD", &PCCContext::getV3CUnitHeaderAD,  py::return_value_policy::reference_internal)
+        .def("setAtlasIndex", &PCCContext::setAtlasIndex, py::arg("atlIdx"))
 
         ;
         
