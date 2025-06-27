@@ -5,12 +5,13 @@
 namespace py = pybind11;
 using namespace pcc;
 
-void bind_PCCBitstream(py::module& m) {
+void bind_PCCBitstream(py::module &m)
+{
     py::class_<PCCBitstream>(m, "PCCBitstream")
         .def(py::init<>())
-        .def("size", &PCCBitstream::size)  // Example method
-        .def("initialize", py::overload_cast<const std::string&>(&PCCBitstream::initialize),py::arg("compressedStreamPath"),py::return_value_policy::reference_internal)
-        .def("write", static_cast<bool (PCCBitstream::*)(const std::string&)>(&PCCBitstream::write), py::arg("compressedStreamPath"))
+        .def("size", &PCCBitstream::size) // Example method
+        .def("initialize", py::overload_cast<const std::string &>(&PCCBitstream::initialize), py::arg("compressedStreamPath"), py::return_value_policy::reference_internal)
+        .def("write", static_cast<bool (PCCBitstream::*)(const std::string &)>(&PCCBitstream::write), py::arg("compressedStreamPath"))
         //.def("initialize", py::overload_cast<uint64_t>(&PCCBitstream::initialize),py::arg("bitStreamSize"))
         //.def("vector", &PCCBitstream::vector, py::return_value_policy::reference_internal)
         //.def("computeMD5", &PCCBitstream::computeMD5) //not working :(
@@ -22,8 +23,7 @@ void bind_PCCBitstream(py::module& m) {
         .def("incrHeader", &PCCBitstreamStat::incrHeader, py::arg("size"))
         //.def("setV3CUnitSize", &PCCBitstreamStat::setV3CUnitSize, py::arg("type"), py::arg("size"))
         //.def("getV3CUnitSize", &PCCBitstreamStat::getV3CUnitSize, py::arg("type"), py::return_value_policy::reference_internal)
-        .def("trace", &PCCBitstreamStat::trace, py::arg("byGOF "))
-        ;
+        .def("trace", &PCCBitstreamStat::trace, py::arg("byGOF "));
 
     py::enum_<V3CUnitType>(m, "V3CUnitType")
         .value("V3C_VPS", V3C_VPS)
@@ -32,4 +32,9 @@ void bind_PCCBitstream(py::module& m) {
         .value("V3C_GVD", V3C_GVD)
         .value("V3C_AVD", V3C_AVD)
         .value("NUM_V3C_UNIT_TYPE", NUM_V3C_UNIT_TYPE);
-} 
+
+    py::enum_<PCCVideoType>(m, "PCCVideoType")
+        .value("VIDEO_OCCUPANCY", VIDEO_OCCUPANCY)
+        .value("VIDEO_GEOMETRY", VIDEO_GEOMETRY)
+        .value("VIDEO_ATTRIBUTE", VIDEO_ATTRIBUTE);
+}
