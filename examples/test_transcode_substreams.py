@@ -128,7 +128,7 @@ def transcodeData(context, params):
 def transcodeVideo(videoBitstream, type, params):
     input_bytes = bytes(videoBitstream.vector())
     
-    output_bytes = input_bytes
+    output_bytes = input_bytes #here Kvazaar is used in the next step
     
     vec = videoBitstream.vector()
     vec.clear()
