@@ -7,7 +7,7 @@ import numpy as np
 
 def test():
     base_dir    = os.path.dirname(os.path.abspath(__file__))
-    input       = os.path.join(base_dir, "test_data", "compressed", "S26C03R03.bin")
+    input       = os.path.join(base_dir, "test_data", "compressed", "S26C03R03_30frames.bin")
     output      = os.path.join(base_dir, "test_data", "compressed", "S26C03R03_decode_encode.bin")
     print("Input path exists and is readable:", os.path.exists(input) & os.access(input, os.R_OK))
 
