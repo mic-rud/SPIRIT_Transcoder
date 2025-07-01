@@ -5,13 +5,17 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     python3.10 \
-    python3.10-venv \
     python3.10-dev \
     python3-pip \
-    git \
     vim \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
+
+# Cargo and just
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN cargo install just
 
 WORKDIR /app
 
@@ -53,4 +57,5 @@ RUN mkdir build && cd build \
 RUN ln -s /app/build/bindings/bitstream_bindings.cpython-310-x86_64-linux-gnu.so \
    /usr/local/lib/python3.10/dist-packages/bitstream_bindings.so
 
+WORKDIR /app/src
 CMD ["/bin/bash"]
