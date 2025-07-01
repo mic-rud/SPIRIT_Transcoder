@@ -1,4 +1,32 @@
 ## Setup
+
+All you need is docker, and just to make your life easier.
+```
+snap install --edge --classic just
+```
+just can be installed through a number of ways, check out their github for alternatives.
+
+### Building the container
+```
+just build
+```
+
+### Running the container
+``` 
+just run
+```
+
+### Utilities for inside the container
+You can easily decode a bitstream with V-PCC using
+```
+just decode FILEPATH
+```
+
+
+
+----
+
+## Setup
 Setup a virtual environment
 
 We need pybindings
