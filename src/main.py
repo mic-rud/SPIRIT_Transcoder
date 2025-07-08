@@ -4,7 +4,7 @@ import yaml
 import bitstream_bindings as bs
 from bitstream import BitstreamIO
 
-def read_write(config_path):
+def transcode(config_path):
     # Load config
     with open (config_path, "r") as f:
         config = yaml.safe_load(f)
@@ -25,6 +25,10 @@ def read_write(config_path):
     geoVideoBitstream.sampleStreamToByteStream()
     attVideoBitstream.sampleStreamToByteStream()
 
+    #transcode_video(occVideoBitstream, bs.PCCVideoType.VIDEO_OCCUPANCY)
+    #transcode_video(geoVideoBitstream, bs.PCCVideoType.VIDEO_GEOMETRY, params)
+    #transcode_video(attVideoBitstream, bs.PCCVideoType.VIDEO_ATTRIBUTE)
+
     occVideoBitstream.byteStreamToSampleStream()
     geoVideoBitstream.byteStreamToSampleStream()
     attVideoBitstream.byteStreamToSampleStream()
@@ -37,7 +41,6 @@ def read_write(config_path):
 
 
 
-
 if __name__ == "__main__":
     config_path = "../configs/test_config.yaml"
-    read_write(config_path)
+    transcode(config_path)

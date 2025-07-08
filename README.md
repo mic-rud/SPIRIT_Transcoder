@@ -24,6 +24,14 @@ just decode FILEPATH
 
 
 
+## Test Data
+
+Download a sequence from 8iVFBv2
+```
+  cd data
+  wget https://plenodb.jpeg.org/pc/8ilabs/redandblack.zip --no-check-certificate
+```
+and unzip it. (You may clean up everything except ./data/redandblack afterwards)
 ----
 
 ## Setup
