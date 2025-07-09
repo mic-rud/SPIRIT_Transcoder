@@ -1,0 +1,3 @@
+# Test config
+in_path: "../data/tests/S26C03R03_30frames.bin"
+out_path: "../data/tmp/S26C03R03_read_write.bin"

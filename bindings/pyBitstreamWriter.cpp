@@ -17,9 +17,8 @@ void bind_PCCBitstreamWriter(py::module& m) {
     py::class_<PCCBitstreamWriter>(m, "PCCBitstreamWriter")
         .def(py::init<>())
         .def("encode", &PCCBitstreamWriter::encode, py::arg("syntax"), py::arg("ssvu"))
-        .def("write_v3c", [](PCCBitstreamWriter& self, SampleStreamV3CUnit& ssvu, PCCBitstream& bitstream, uint32_t precision){
-            return self.write(ssvu, bitstream, precision);
-        }, py::arg("ssvu"), py::arg("bitstream"), py::arg("precision") = 0)
+        .def("write_v3c", static_cast<size_t (PCCBitstreamWriter::*)(SampleStreamV3CUnit&, PCCBitstream&, uint32_t)>(&PCCBitstreamWriter::write),
+            py::arg("ssvu"), py::arg("bitstream"), py::arg("precision") = 0)
         .def("write_nal", [](PCCBitstreamWriter& self, SampleStreamNalUnit& ssnu, PCCBitstream& bitstream, uint32_t precision){
             return self.write(ssnu, bitstream, precision);
         }, py::arg("ssnu"), py::arg("bitstream"), py::arg("precision") = 0);
