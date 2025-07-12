@@ -39,7 +39,7 @@ RUN ls -l /app/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/inclu
     /app/dependencies/mpeg-pcc-tmc2/patch.sh && \
     grep "SampleStreamV3CUnit" /app/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/include/PCCBitstreamWriter.h || (echo "Patch failed"; exit 1)
 
-RUN mkdir build && cd build \
+RUN rm -rf build && mkdir build && cd build \
     && cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
     && make -j$(nproc)
 
@@ -47,7 +47,8 @@ RUN mkdir build && cd build \
 # Build Transcoder
 WORKDIR /app
 COPY . /app
-RUN mkdir build && cd build \
+
+RUN rm -rf build && mkdir build && cd build \
    && cmake .. \
        -DPYTHON_EXECUTABLE=$(which python3) \
        -DCMAKE_PREFIX_PATH=$(python3 -m pybind11 --cmakedir) \

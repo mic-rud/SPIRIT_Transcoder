@@ -24,3 +24,7 @@ __pycache__/
 /data/
 
 /.env
+
+*.ply
+*log.txt
+*md5.txt

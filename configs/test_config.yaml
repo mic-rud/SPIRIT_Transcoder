@@ -1,3 +1,18 @@
 # Test config
-in_path: "../data/tests/S26C03R03_30frames.bin"
-out_path: "../data/tmp/S26C03R03_read_write.bin"
+in_path: "/app/data/encoded/redandblack.bin"
+out_path: "/app/data/transcoded/redandblack_tc.bin"
+
+num_video_coder_threads: 1
+
+codec_params:
+  video_occupancy:
+    fps: 30
+    preset: "fast"
+
+  video_geometry:
+    fps: 30
+    preset: "fast"
+
+  video_attribute:
+    fps: 30
+    preset: "fast"

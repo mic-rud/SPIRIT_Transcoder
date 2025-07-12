@@ -1,11 +1,12 @@
 import time
 import yaml
-
+from transcoder import Transcoder
 import bitstream_bindings as bs
 from bitstream import BitstreamIO
 
 def transcode(config_path):
     # Load config
+    print(config_path)
     with open (config_path, "r") as f:
         config = yaml.safe_load(f)
 
@@ -28,6 +29,14 @@ def transcode(config_path):
     #transcode_video(occVideoBitstream, bs.PCCVideoType.VIDEO_OCCUPANCY)
     #transcode_video(geoVideoBitstream, bs.PCCVideoType.VIDEO_GEOMETRY, params)
     #transcode_video(attVideoBitstream, bs.PCCVideoType.VIDEO_ATTRIBUTE)
+    streams = [
+            (occVideoBitstream, bs.PCCVideoType.VIDEO_OCCUPANCY),
+            (geoVideoBitstream,  bs.PCCVideoType.VIDEO_GEOMETRY),
+            (attVideoBitstream, bs.PCCVideoType.VIDEO_ATTRIBUTE)
+        ]
+    
+    transcoder = Transcoder(config)
+    transcoder.transcode(streams)
 
     occVideoBitstream.byteStreamToSampleStream()
     geoVideoBitstream.byteStreamToSampleStream()
@@ -42,5 +51,5 @@ def transcode(config_path):
 
 
 if __name__ == "__main__":
-    config_path = "../configs/test_config.yaml"
+    config_path = "/app/configs/test_config.yaml"
     transcode(config_path)
