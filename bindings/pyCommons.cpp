@@ -15,8 +15,7 @@ using namespace pcc;
 void bind_commons(py::module &m)
 {
     py::class_<PCCHighLevelSyntax>(m, "PCCHighLevelSyntax")
-        .def(py::init<>())
-        ;
+        .def(py::init<>());
 
     py::class_<PCCContext, PCCHighLevelSyntax>(m, "PCCContext")
         .def(py::init<>())
@@ -85,6 +84,12 @@ void bind_commons(py::module &m)
         .def("resize", &PCCVideoBitstream::resize, py::arg("size"))
         .def("byteStreamToSampleStream", &PCCVideoBitstream::byteStreamToSampleStream,
              py::arg("precision") = 4,
-             py::arg("emulationPreventionBytes") = false);
+             py::arg("emulationPreventionBytes") = false)
+        .def("set_bytes", [](PCCVideoBitstream &self, py::bytes b)
+             {
+            std::string s = b;
+            self.resize(s.size());
+            std::memcpy(self.buffer(), s.data(), s.size()); });
+
     ;
 }

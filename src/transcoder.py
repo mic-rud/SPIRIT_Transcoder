@@ -20,15 +20,19 @@ class Transcoder():
         threads = []
         for stream, stream_type in streams:
             codec_params = self.config.get("codec_params", {}).get(stream_type.name.lower(), {})
-            t = threading.Thread(target=self.transcode_substream, args=(stream, stream_type, codec_params))
-            t.start()
-            threads.append(t)
+            print("before substream: ",stream_type, ": ", len(stream.vector()))
+            self.transcode_substream(stream, stream_type, codec_params)
+            #t = threading.Thread(target=self.transcode_substream, args=(stream, stream_type, codec_params))
+            #t.start()
+            #threads.append(t)
             
-        for t in threads:
-            t.join()
+        #for t in threads:
+        #    print("after substream: ",stream_type, ": ", len(stream.vector()))
+        #    t.join()
+        for stream, stream_type in streams:
+            print("after substream: ",stream_type, ": ", len(stream.vector()))
         
         print(f"Transcoding in {time.time() - t0:.2f}s")
-
 
     def transcode_substream(self, substream, stream_type, codec_params):
         
@@ -49,8 +53,7 @@ class Transcoder():
         with open(output_path, "rb") as f:
             encoded_bytes = f.read()
             
-        substream.vector().clear()
-        substream.vector().extend(encoded_bytes)
+        substream.set_bytes(encoded_bytes)
 
     def run_codec(self):
         pass
