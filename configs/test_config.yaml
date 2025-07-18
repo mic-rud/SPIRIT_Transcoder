@@ -3,16 +3,23 @@ in_path: "/app/data/encoded/redandblack.bin"
 out_path: "/app/data/transcoded/redandblack_tc.bin"
 
 num_video_coder_threads: 1
+pixel_format: "yuv420p"
 
 codec_params:
   video_occupancy:
     fps: 30
     preset: "fast"
+    profile: "main10"
+    crf: 5
 
   video_geometry:
     fps: 30
     preset: "fast"
+    profile: "main10"
+    crf: 20
 
   video_attribute:
     fps: 30
     preset: "fast"
+    profile: "main10"
+    crf: 27
