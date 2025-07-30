@@ -1,6 +1,85 @@
 import av
 import numpy as np
 import io
+import subprocess
+from dataclass import dataclass
+from typing import Optional
+
+
+class FFMPEGCoder:
+    def __init__(self, config):
+        self.config = config
+
+    def update_config(self, config):
+        self.config = config
+
+    def encode(self, frames: list[np.ndarray]) -> bytes:
+        if not frames:
+            raise ValueError("No frames to encode.")
+
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-f", "rawvideo",
+            "-vcodec", "rawvideo",
+            "-pix_fmt", self.config["pix_fmt"],
+            "-s", f"{self.config["width"]}x{self.config["height"]}",
+            "-r", str(self.config["fps"]),
+            "-i", "-",
+            "-c:v", self.config["codec"],
+            "-preset", self.config["preset"],
+            "-crf", self.config["crf"],
+            "-f", "hevc", 
+            "pipe:1"
+        ] + self.config["extra_args"]
+
+        process = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL
+        )
+
+        for frame in frames:
+            if frame.shape[:2] != (self.config["height"], self.config["width"]):
+                raise ValueError(f"Frame size mismatch. Expected ({self.config["height"]},{self.config["width"]}), got {frame.shape[:2]}")
+            process.stdin.write(frame.astype(np.uint8).tobytes())
+
+        process.stdin.close()
+        encoded = process.stdout.read()
+        process.wait()
+
+        if process.returncode != 0:
+            raise RuntimeError("FFmpeg encoding failed")
+
+        return encoded
+    
+
+    def decode(self, video_bytes: bytes) -> list[np.ndarray]:
+        cmd = [
+            "ffmpeg",
+            "-i", "pipe:0",
+            "-f", "rawvideo",
+            "-pix_fmt", self.config["pix_fmt"],
+            "pipe:1"
+        ]
+
+        process = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL
+        )
+
+        out, _ = process.communicate(input=video_bytes)
+
+        if process.returncode != 0:
+            raise RuntimeError("FFmpeg decoding failed")
+
+        frame_size = self.config["height"] * self.config["width"]
+        n_frames = len(out) // frame_size
+        frames = np.frombuffer(out, dtype=np.uint8).reshape((n_frames, self.height, self.width, 3))
+        return list(frames)
 
 
 class HEVCVideoCoder:
@@ -10,7 +89,7 @@ class HEVCVideoCoder:
     def update_config(self, config):
         pass
 
-    def transcode(self, bytestream):
+    def decode(self, bytestream):
         if isinstance(bytestream, bytes):
             buffer_size = len(bytestream)
             bytestream = io.BytesIO(bytestream)
