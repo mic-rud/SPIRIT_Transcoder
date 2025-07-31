@@ -3,6 +3,7 @@
 #include "PCCHighLevelSyntax.h"
 #include "PCCSampleStreamV3CUnit.h"
 #include "PCCSampleStreamNalUnit.h"
+#include "PCCAtlasSequenceParameterSetRbsp.h"
 #include "PCCSei.h"
 #include "PCCV3CParameterSet.h"
 #include <pybind11/stl.h>
@@ -26,6 +27,7 @@ void bind_commons(py::module &m)
         .def("resizeAtlas", &PCCContext::resizeAtlas, py::arg("size"))
         .def("getVps", static_cast<V3CParameterSet &(PCCContext::*)()>(&PCCContext::getVps), py::return_value_policy::reference_internal)
         .def("getAtlasTileLayerList", &PCCContext::getAtlasTileLayerList, py::return_value_policy::reference_internal)
+        .def("getAtlasSequenceParameterSet", &PCCContext::getAtlasSequenceParameterSet, py::arg("setId"), py::return_value_policy::reference_internal)
         .def("setAtlasIndex", &PCCContext::setAtlasIndex, py::arg("atlIdx"))
         .def("setOccupancyPrecision", &PCCContext::setOccupancyPrecision, py::arg("value"))
         .def("getVideoBitstream", static_cast<PCCVideoBitstream &(PCCContext::*)(PCCVideoType)>(&PCCContext::getVideoBitstream), py::return_value_policy::reference_internal);
@@ -38,6 +40,13 @@ void bind_commons(py::module &m)
         .def("getV3CUnitCount", &SampleStreamV3CUnit::getV3CUnitCount, py::return_value_policy::reference_internal);
 
     py::class_<SampleStreamNalUnit>(m, "PCCSampleStreamNalUnit").def(py::init<>());
+
+    py::class_<AtlasSequenceParameterSetRbsp>(m, "PCCAtlasSequenceParameterSetRbsp")
+        .def(py::init<>())
+        .def("getFrameHeight", &AtlasSequenceParameterSetRbsp::getFrameHeight, py::return_value_policy::reference_internal)
+        .def("getFrameWidth", &AtlasSequenceParameterSetRbsp::getFrameWidth, py::return_value_policy::reference_internal)
+    ;
+
 
     py::class_<V3CParameterSet>(m, "V3CParameterSet")
         .def(py::init<>())

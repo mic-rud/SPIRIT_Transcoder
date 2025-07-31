@@ -1,11 +1,27 @@
 # Test config
-in_path: "/app/data/encoded/redandblack.bin"
-out_path: "/app/data/transcoded/redandblack_tc.bin"
+in_path: "/app/data/encoded/test.bin"
+out_path: "/app/data/transcoded/test_tc.bin"
 
 num_video_coder_threads: 1
 pixel_format: "yuv420p"
 
-codec_params:
+decode:
+  n_threads: 4
+  pix_fmt: "yuv420p"
+  width: 1024
+  height: 1024
+  occ_prec: 2
+encode:
+  n_threads: 8
+  pix_fmt: "yuv420p"
+  width: 1024
+  height: 1024
+  occ_prec: 2
+  fps: 30
+  crf: 30
+  profile: "main10"
+  preset: "superfast"
+
   video_occupancy:
     fps: 30
     preset: "fast"

@@ -12,40 +12,40 @@ def transcode(config_path):
 
     t0 = time.time()
 
-    bitstream_parser= BitstreamIO()
-    # Read the bitstream
-    context = bitstream_parser.read_bitstream(config["in_path"], trace=True)
+    #bitstream_parser= BitstreamIO()
+    ## Read the bitstream
+    #context = bitstream_parser.read_bitstream(config["in_path"], trace=True)
 
-    # Extract video substreams 
-    occVideoBitstream = context.getVideoBitstream(bs.PCCVideoType.VIDEO_OCCUPANCY)
-    geoVideoBitstream = context.getVideoBitstream(bs.PCCVideoType.VIDEO_GEOMETRY)
-    attVideoBitstream = context.getVideoBitstream(bs.PCCVideoType.VIDEO_ATTRIBUTE)
+    ## Extract video substreams 
+    #occVideoBitstream = context.getVideoBitstream(bs.PCCVideoType.VIDEO_OCCUPANCY)
+    #geoVideoBitstream = context.getVideoBitstream(bs.PCCVideoType.VIDEO_GEOMETRY)
+    #attVideoBitstream = context.getVideoBitstream(bs.PCCVideoType.VIDEO_ATTRIBUTE)
 
-    # To bytestream
-    occVideoBitstream.sampleStreamToByteStream()
-    geoVideoBitstream.sampleStreamToByteStream()
-    attVideoBitstream.sampleStreamToByteStream()
+    ## To bytestream
+    #occVideoBitstream.sampleStreamToByteStream()
+    #geoVideoBitstream.sampleStreamToByteStream()
+    #attVideoBitstream.sampleStreamToByteStream()
 
-    #transcode_video(occVideoBitstream, bs.PCCVideoType.VIDEO_OCCUPANCY)
-    #transcode_video(geoVideoBitstream, bs.PCCVideoType.VIDEO_GEOMETRY, params)
-    #transcode_video(attVideoBitstream, bs.PCCVideoType.VIDEO_ATTRIBUTE)
-    streams = [
-            (occVideoBitstream, bs.PCCVideoType.VIDEO_OCCUPANCY),
-            (geoVideoBitstream,  bs.PCCVideoType.VIDEO_GEOMETRY),
-            (attVideoBitstream, bs.PCCVideoType.VIDEO_ATTRIBUTE)
-        ]
+    ##transcode_video(occVideoBitstream, bs.PCCVideoType.VIDEO_OCCUPANCY)
+    ##transcode_video(geoVideoBitstream, bs.PCCVideoType.VIDEO_GEOMETRY, params)
+    ##transcode_video(attVideoBitstream, bs.PCCVideoType.VIDEO_ATTRIBUTE)
+    #streams = [
+            #(occVideoBitstream, bs.PCCVideoType.VIDEO_OCCUPANCY),
+            #(geoVideoBitstream,  bs.PCCVideoType.VIDEO_GEOMETRY),
+            #(attVideoBitstream, bs.PCCVideoType.VIDEO_ATTRIBUTE)
+        #]
+    #occVideoBitstream.byteStreamToSampleStream()
+    #geoVideoBitstream.byteStreamToSampleStream()
+    #attVideoBitstream.byteStreamToSampleStream()
+
+
+    #bitstream_parser.write_bitstream(context, config["out_path"], trace=True)
     
     transcoder = Transcoder(config)
-    transcoder.transcode(streams)
-
-    occVideoBitstream.byteStreamToSampleStream()
-    geoVideoBitstream.byteStreamToSampleStream()
-    attVideoBitstream.byteStreamToSampleStream()
+    transcoder.transcode(config["in_path"], config["out_path"], config)
 
 
-    bitstream_parser.write_bitstream(context, config["out_path"], trace=True)
-
-    print(time.time() - t0)
+    print("Total time: {}".format(time.time() - t0))
 
 
 
