@@ -1,21 +1,39 @@
-FROM ubuntu:22.04
+FROM jrottenberg/ffmpeg:4.4-ubuntu2204
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
+    software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && apt-get install -y \
     python3.10 \
     python3.10-dev \
-    python3-pip \
-    vim \
+    python3.10-distutils \
+    libegl1 \
+    libgl1 \
+    libgl1-mesa-glx \
+    libgl1-mesa-dri \
     curl \
     git \
+    build-essential \
+    cmake \
+    vim \
+    pkg-config \
+    libclang-dev \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
+    && ln -sf python3.10 /usr/bin/python3 \
+    && ln -sf pip3 /usr/bin/pip \
     && rm -rf /var/lib/apt/lists/*
 
 # Cargo and just
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN cargo install just
+
+
+RUN curl -LO https://github.com/Kitware/CMake/releases/download/v3.27.9/cmake-3.27.9-linux-x86_64.sh && \
+    chmod +x cmake-3.27.9-linux-x86_64.sh && \
+    ./cmake-3.27.9-linux-x86_64.sh --skip-license --prefix=/usr/local && \
+    rm cmake-3.27.9-linux-x86_64.sh
 
 WORKDIR /app
 
@@ -61,5 +79,5 @@ RUN ln -s /app/build/bindings/bitstream_bindings.cpython-310-x86_64-linux-gnu.so
 ENV XDG_RUNTIME_DIR=/tmp/runtime-root
 RUN mkdir -p /tmp/runtime-root
 
-WORKDIR /app/src
+ENTRYPOINT []
 CMD ["/bin/bash"]

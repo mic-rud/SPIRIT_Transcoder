@@ -1,16 +1,18 @@
 import bitstream_bindings as bs
 from bitstream import BitstreamIO
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import time
-from videoCoder import HEVCCoder, FFMPEGCoder
+from videoCoder import HEVCCoder, FFMPEGCodec
+def transcode_bytes(bytestream, config, video_type):
+    coder = FFMPEGCodec(config)
+    return coder.transcode(bytestream, config, video_type)
+
 
 class Transcoder:
     def __init__(self, config):
+        #self.video_coder = HEVCCoder(config)
         self.bitstreamIO = BitstreamIO()
-        #self.video_coder = FFMPEGCoder(config)
-        self.video_coder = HEVCCoder(config)
-
-        self.workers = ThreadPoolExecutor(max_workers=3)
+        self.workers = ProcessPoolExecutor(max_workers=3)
 
     def transcode(self, in_stream, out_stream, config):
         """
@@ -38,45 +40,24 @@ class Transcoder:
         config["height"] = asps.getFrameHeight()
         config["width"] = asps.getFrameWidth()
 
-        # Transcode all streams in parallel (decode + encode)
+        # Convert substreams to bytes
+        stream_bytes = {}
+        for key, substream in video_streams.items():
+            substream.sampleStreamToByteStream()
+            stream_bytes[key] = bytes(substream.vector())
+
+        # Submit jobs
         futures = {
-            key: self.workers.submit(
-                self.transcode_substream,
-                byte_stream,
-                key,
-                config
-            )
-            for key, byte_stream in video_streams.items()
+            key: self.workers.submit(transcode_bytes, stream_bytes[key], config, key)
+            for key in stream_bytes
         }
 
-        # Collect encoded results and patch back into context
-        for f in futures.values():
-            f.result()
+        # Collect results and re-encode substreams
+        for key, future in futures.items():
+            encoded = future.result()
+            video_streams[key].set_bytes(encoded)
+            video_streams[key].byteStreamToSampleStream()
 
         # Write the data again
-        self.bitstreamIO.write_bitstream(context, config["out_path"], trace=True)
+        self.bitstreamIO.write_bitstream(context, out_stream, trace=True)
         return 
-
-    def transcode_substream(self, substream, video_type, config):
-        """
-        Transcode a substream according to the given config.
-
-        Parameters:
-            substream : Reference to the Video substream
-            config (dict): Dictionary containing the encoding and 
-                           decoding configuration for the substream
-        """
-        
-        # Extract Bytes from substream
-        substream.sampleStreamToByteStream()
-        bytestream = bytes(substream.vector())
-
-        # Decode and encode acording to the config
-        decoded_frames, pix_fmt = self.video_coder.decode(bytestream, config["decode"], video_type)
-        encoded_bytes = self.video_coder.encode(decoded_frames, config["encode"], video_type, pix_fmt)
-
-        # Set encoded bytes to substream
-        substream.set_bytes(encoded_bytes)
-        substream.byteStreamToSampleStream()
-        return 
-        

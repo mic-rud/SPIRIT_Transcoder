@@ -19,13 +19,6 @@ clean:
 	docker image prune -f
 
 
-# V-PCC Utilities
-decode FILENAME:
-	/app/dependencies/mpeg-pcc-tmc2/bin/PccAppDecoder \
-		--compressedStreamPath=/app/data/transcoded/{{FILENAME}} \
-		--startFrameNumber=0 \
-		--inverseColorSpaceConversionConfig=/app/dependencies/mpeg-pcc-tmc2/cfg/hdrconvert/yuv420torgb444.cfg \
-		--reconstructedDataPath=/app/data/reconstructed/S26C03R03_dec_%04d.ply 
 
 transcode:
 	python3.10 /app/src/main.py
@@ -42,6 +35,12 @@ encode INFILE OUTFILE:
 		--frameCount=30 \
 		--reconstructedDataPath=S26C03R03_rec_%04d.ply \
 		--compressedStreamPath=/app/data/encoded/{{OUTFILE}}
+
+decode INFILE OUTFILE:
+	/app/dependencies/mpeg-pcc-tmc2/bin/PccAppDecoder \
+	--compressedStreamPath={{INFILE}} \
+	--inverseColorSpaceConversionConfig=/app/dependencies/mpeg-pcc-tmc2/cfg/hdrconvert/yuv420torgb444.cfg \
+	--reconstructedDataPath=/app/data/decoded/{{OUTFILE}} 
 
 rustdecode INFILE OUTPATH:
 	cargo run --manifest-path /app/dependencies/tmc2-rs/Cargo.toml --bin decoder -- -i {{INFILE}} -o {{OUTPATH}}

@@ -1,0 +1,13 @@
+occPreset: 
+occEncThreads: 2
+occEncodingMode: "AI" # AI or RA
+
+geoPreset: 
+geoEncThreads: 4
+geoEncodingMode: "AI"
+geoQP: 53
+
+geoPreset: 
+geoEncThreads: 4
+geoEncodingMode: "AI"
+attQP: 53

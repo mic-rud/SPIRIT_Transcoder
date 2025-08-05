@@ -25,13 +25,14 @@ just decode FILEPATH
 
 
 ## Test Data
-
-Download a sequence from 8iVFBv2
+Setting up requires you to pre-encode some data.
+First, download some data using
 ```
-  cd data
-  wget https://plenodb.jpeg.org/pc/8ilabs/redandblack.zip --no-check-certificate
+  ./scripts/download_data.sh
 ```
-and unzip it. (You may clean up everything except ./data/redandblack afterwards)
+Then, in the docker container:
+```
+  ./scripts/prepare_data.sh
 ----
 
 ## Setup

@@ -6,12 +6,61 @@ import subprocess
 import tempfile
 
 
-class FFMPEGCoder:
-    def __init__(self, config):
-        self.config = config
+class FFMPEGCodec:
+    def __init__(self):
+        pass
 
-    def update_config(self, config):
-        self.config = config
+    def init_codec(self, config, video_type):
+        codec_name = config.get("codec", "libx265")
+
+        # Set input 
+        cmd = [ "ffmpeg", "-y", "-f hvec", "-i pipe:0"]
+
+        # Set codec
+        cmd.append("-c:v {}".format(codec_name))
+        if video_type == "att":
+            cmd.append("-preset {}".format(config.get("preset", "medium")))
+            cmd.append("-crf {}".format(config.get("attQP", "20")))
+            cmd.append("-crf {}".format(config.get("geoQP", "20")))
+
+
+
+
+    def transcode(self, video_bytes, config, video_type):
+        codec_args = self.init_codec(config, video_type)
+        cmd = [
+            "ffmpeg",
+            #"-loglevel", "debug",
+            "-y",                 # overwrite output files
+            "-f", "hevc",        # input is HEVC bitstream
+            "-i", "pipe:0",      # from stdin
+            "-c:v", "libkvazaar",   # new codec
+            "-profile:v", config["profile"],
+            "-preset", config["preset"],
+            "-tune", config["tune"],
+            #"-x265-params", "keyint=2:min-keyint=2:no-scenecut=1:bframes=0",
+            "-kvazaar-params", "period=2,gop=0,threads=16",
+            "-crf", str(config[video_type]["QP"]),
+            "-r", "30",             #FPS
+            "-f", "hevc",         # output container format
+            "pipe:1"
+        ]
+
+        process = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        out_bytes, err = process.communicate(input=video_bytes)
+
+        print("FFmpeg log:\n", err.decode("utf-8"))
+
+        if process.returncode != 0:
+            raise RuntimeError("Transcoding failed")
+
+        return out_bytes  
 
     def encode(self, frames: list[np.ndarray], config, video_type) -> bytes:
         if not frames:
@@ -104,6 +153,11 @@ class HEVCCoder:
     def update_config(self, config):
         self.config = config
 
+    def transcode(self, video_bytes, config, video_type):
+        frames, pix_fmt = self.decode(video_bytes, config, video_type)
+        transcoded_bytes = self.encode(frames, config, video_type, pix_fmt)
+        return transcoded_bytes
+
     def encode(self, frames: list[np.ndarray], config, video_type, pix_fmt) -> bytes:
         if not frames:
             raise ValueError("No frames to encode.")
@@ -118,7 +172,8 @@ class HEVCCoder:
         crf = config.get("crf", "23")
         preset = config.get("preset", "medium")
         profile = config.get("profile", "main")
-        threads = config.get("n_threads", 1)
+        tune = config.get("tune", "zerolatency")
+        threads = config.get("enc_threads", 1)
 
         # Write to temporary file
         with tempfile.NamedTemporaryFile(suffix=".hevc", delete=False) as f:
@@ -135,6 +190,7 @@ class HEVCCoder:
             "crf": str(crf),
             "preset": preset,
             "profile": profile,
+            "tune": tune,
             "threads": str(threads),
         }
 
@@ -168,7 +224,7 @@ class HEVCCoder:
         container = av.open(io.BytesIO(video_bytes), 
                             format="hevc", 
                             mode="r",
-                            options={"threads": str(config["n_threads"])})
+                            options={"threads": str(config["dec_threads"])})
 
         frames = []
         for packet in container.demux(video=0):
