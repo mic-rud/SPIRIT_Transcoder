@@ -5,9 +5,8 @@
       <disk_image name="urn:publicid:IDN+wall1.ilabt.imec.be+image+emulab-ops:UBUNTU22-04-05-CIv4"/>
     </sliver_type>
     <services>
-      <execute shell="sh" command="git clone git@github.com:mic-rud/SPIRIT_Transcoder.git"/>
-      <execute shell="sh" command="cd SPIRIT_Transcoder"/>
-      <execute shell="sh" command="sudo bash ./scripts/transcoder_test_install.sh"/>
+      <execute shell="sh" command="apt update && apt install -y curl"/>
+      <execute shell="sh" command="curl -fsSL https://raw.githubusercontent.com/mic-rud/SPIRIT_Transcoder/ffmpegtranscoding/scripts/transcoder_test_install.sh | sudo bash"/>
     </services>
     <location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="144.0" y="188.0"/>
   </node>
