@@ -1,0 +1,14 @@
+<?xml version='1.0'?>
+<rspec xmlns="http://www.geni.net/resources/rspec/3" type="request" generated_by="jFed RSpec Editor" generated="2025-08-07T17:54:09.940+02:00" xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" xmlns:delay="http://www.protogeni.net/resources/rspec/ext/delay/1" xmlns:jfed-command="http://jfed.iminds.be/rspec/ext/jfed-command/1" xmlns:client="http://www.protogeni.net/resources/rspec/ext/client/1" xmlns:jfed-ssh-keys="http://jfed.iminds.be/rspec/ext/jfed-ssh-keys/1" xmlns:jfed="http://jfed.iminds.be/rspec/ext/jfed/1" xmlns:sharedvlan="http://www.protogeni.net/resources/rspec/ext/shared-vlan/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd ">
+  <node client_id="node0" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.imec.be+authority+cm">
+    <sliver_type name="raw-pc">
+      <disk_image name="urn:publicid:IDN+wall1.ilabt.imec.be+image+emulab-ops:UBUNTU22-04-05-CIv4"/>
+    </sliver_type>
+    <services>
+      <execute shell="sh" command="git clone git@github.com:mic-rud/SPIRIT_Transcoder.git"/>
+      <execute shell="sh" command="cd SPIRIT_Transcoder"/>
+      <execute shell="sh" command="sudo bash ./scripts/transcoder_test_install.sh"/>
+    </services>
+    <location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="144.0" y="188.0"/>
+  </node>
+</rspec>

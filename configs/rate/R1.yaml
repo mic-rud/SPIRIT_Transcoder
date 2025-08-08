@@ -1,13 +1,13 @@
-occPreset: 
+occPreset: fast
 occEncThreads: 2
 occEncodingMode: "AI" # AI or RA
 
-geoPreset: 
+geoPreset: fast
 geoEncThreads: 4
 geoEncodingMode: "AI"
-geoQP: 53
+geoQP: 23
 
-geoPreset: 
-geoEncThreads: 4
-geoEncodingMode: "AI"
-attQP: 53
+attPreset: fast
+attEncThreads: 4
+attEncodingMode: "AI"
+attQP: 40

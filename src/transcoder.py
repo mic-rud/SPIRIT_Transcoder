@@ -4,7 +4,8 @@ from concurrent.futures import ProcessPoolExecutor
 import time
 from videoCoder import HEVCCoder, FFMPEGCodec
 def transcode_bytes(bytestream, config, video_type):
-    coder = FFMPEGCodec(config)
+    coder = FFMPEGCodec()
+    coder.init_codec(config, video_type)
     return coder.transcode(bytestream, config, video_type)
 
 

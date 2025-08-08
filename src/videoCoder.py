@@ -12,22 +12,77 @@ class FFMPEGCodec:
 
     def init_codec(self, config, video_type):
         codec_name = config.get("codec", "libx265")
+        match codec_name:
+            case "libx265":
+                cmd = self._init_libx265(config, video_type)
+            case "nvenc":
+                cmd = self._init_nvenc(config, video_type)
+            case "kvazaar":
+                cmd = self._init_kvazaar(config, video_type)
+        return cmd
 
-        # Set input 
-        cmd = [ "ffmpeg", "-y", "-f hvec", "-i pipe:0"]
+    def _init_libx265(self, config, video_type):
+        cmd = ["ffmpeg", "-y", "-f", "hevc", "-i", "pipe:0"]
 
-        # Set codec
-        cmd.append("-c:v {}".format(codec_name))
+        cmd.extend(["-c:v", "libx265"])
+
         if video_type == "att":
-            cmd.append("-preset {}".format(config.get("preset", "medium")))
-            cmd.append("-crf {}".format(config.get("attQP", "20")))
-            cmd.append("-crf {}".format(config.get("geoQP", "20")))
+            cmd.extend(["-preset", config.get("attPreset", "medium")])
+            cmd.extend(["-crf", str(config.get("attQP", "20"))])
+            cmd.extend([
+                "-x265-params",
+                f"keyint=2:min-keyint=2:no-scenecut=1:bframes=0:frame-threads={config.get('attEncThreads', 1)}:pools={config.get('attEncThreads', 1)}"
+            ])
 
+        elif video_type == "geo":
+            cmd.extend(["-preset", config.get("geoPreset", "medium")])
+            cmd.extend(["-crf", str(config.get("geoQP", "20"))])
+            cmd.extend([
+                "-x265-params",
+                f"keyint=2:min-keyint=2:no-scenecut=1:bframes=0:frame-threads={config.get('geoEncThreads', 1)}:pools={config.get('geoEncThreads', 1)}"
+            ])
+
+        elif video_type == "occ":
+            cmd.extend(["-preset", config.get("occPreset", "medium")])
+            cmd.extend(["-crf", str(config.get("occQP", "20"))])
+
+        cmd.extend(["-f", "hevc", "pipe:1"])
+        print(cmd)
+        return cmd
+
+
+
+    def _init_nvenc(self, config, video_type):
+        pass
+
+    def _init_kvazaar(self, config, video_type):
+        cmd = ["ffmpeg", "-y", "-f", "hevc", "-i", "pipe:0"]
+
+        cmd.extend(["-c:v", "libkvazaar"])
+
+        if video_type == "att":
+            cmd.extend(["-preset", config.get("attPreset", "medium")])
+            cmd.extend(["-crf", str(config.get("attQP", "20"))])
+            cmd.extend(["-kvazaar-params", f"period=2:gop=0:threads={config.get('geoEncThreads', 1)}"])
+
+        elif video_type == "geo":
+            cmd.extend(["-preset", config.get("geoPreset", "medium")])
+            cmd.extend(["-crf", str(config.get("geoQP", "20"))])
+            cmd.extend(["-kvazaar-params", f"period=2:gop=0:threads={config.get('geoEncThreads', 1)}"])
+
+        elif video_type == "occ":
+            cmd.extend(["-preset", config.get("occPreset", "medium")])
+            cmd.extend(["-crf", str(config.get("occQP", "20"))])
+
+        cmd.extend(["-f", "hevc", "pipe:1"])
+        print(cmd)
+        return cmd
 
 
 
     def transcode(self, video_bytes, config, video_type):
-        codec_args = self.init_codec(config, video_type)
+        cmd = self.init_codec(config, video_type)
+        """
         cmd = [
             "ffmpeg",
             #"-loglevel", "debug",
@@ -39,12 +94,13 @@ class FFMPEGCodec:
             "-preset", config["preset"],
             "-tune", config["tune"],
             #"-x265-params", "keyint=2:min-keyint=2:no-scenecut=1:bframes=0",
-            "-kvazaar-params", "period=2,gop=0,threads=16",
+            "-kvazaar-params", "",
             "-crf", str(config[video_type]["QP"]),
             "-r", "30",             #FPS
             "-f", "hevc",         # output container format
             "pipe:1"
         ]
+        """
 
         process = subprocess.Popen(
             cmd,

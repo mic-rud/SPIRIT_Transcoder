@@ -80,4 +80,4 @@ ENV XDG_RUNTIME_DIR=/tmp/runtime-root
 RUN mkdir -p /tmp/runtime-root
 
 ENTRYPOINT []
-CMD ["/bin/bash"]
+CMD ["python3", "/app/src/run_transcoder_solo.py"]
