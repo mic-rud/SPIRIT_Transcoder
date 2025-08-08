@@ -12,7 +12,7 @@ sudo apt install -y \
 
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" -y
+sudo add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 sudo apt update
 sudo apt install docker-ce -y
 
@@ -24,10 +24,10 @@ git clone https://github.com/mic-rud/SPIRIT_Transcoder.git
 cd SPIRIT_Transcoder
 
 #Docker building
-docker build -t transcoder -f ./docker/Transcoder.Dockerfile .
+sudo docker build -t transcoder -f ./docker/Transcoder.Dockerfile .
 
 #Docker running
-docker run --rm -it \
+sudo docker run --rm -it \
   -v ./data:/app/data:z \
   -v ./configs:/app/configs:z \
   -v ./results:/app/results:z \

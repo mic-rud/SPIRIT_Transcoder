@@ -7,7 +7,7 @@ build-transcoder:
 	docker build -t {{TRANSCODER_IMAGE}}:{{DOCKER_TAG}} -f ./docker/Transcoder.Dockerfile .
 
 run-transcoder:
-	docker run --rm -it -v ./data:/app/data:z -v ./src:/app/src:z -v ./configs:/app/configs:z -v ./docker:/app/docker:z {{TRANSCODER_IMAGE}}:{{DOCKER_TAG}} 
+	docker run --rm -it -v ./data:/app/data:z -v ./configs:/app/configs:z -v ./results:/app/results:z {{TRANSCODER_IMAGE}}:{{DOCKER_TAG}} 
 
 build-demo:
 	docker build -t {{DEMO_IMAGE}}:{{DOCKER_TAG}} -f ./docker/Demo.Dockerfile .

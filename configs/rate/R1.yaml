@@ -5,9 +5,9 @@ occEncodingMode: "AI" # AI or RA
 geoPreset: fast
 geoEncThreads: 4
 geoEncodingMode: "AI"
-geoQP: 23
+geoQP: 32
 
 attPreset: fast
 attEncThreads: 4
 attEncodingMode: "AI"
-attQP: 40
+attQP: 42

@@ -54,9 +54,15 @@ def transcode(config_path, sequences, segment_ids, output_csv):
 
 
 if __name__ == "__main__":
-    config_path = "/app/configs/test_config.yaml"
     sequences = ["soldier", "longdress", "loot", "redandblack"]  
     segment_ids = list(range(20))
-    output_csv = "/app/results/transcode_times.csv"
 
+    # Kvazaar
+    config_path = "/app/configs/test_config_kvazaar.yaml"
+    output_csv = "/app/results/transcode_times_kvazaar.csv"
+    transcode(config_path, sequences, segment_ids, output_csv)
+
+    # x265
+    config_path = "/app/configs/test_config_x265.yaml"
+    output_csv = "/app/results/transcode_times_x265.csv"
     transcode(config_path, sequences, segment_ids, output_csv)
