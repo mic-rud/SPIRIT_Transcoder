@@ -7,13 +7,25 @@ build-transcoder:
 	docker build -t {{TRANSCODER_IMAGE}}:{{DOCKER_TAG}} -f ./docker/Transcoder.Dockerfile .
 
 run-transcoder:
-	docker run --rm -it -v ./data:/app/data:z -v ./configs:/app/configs:z -v ./results:/app/results:z {{TRANSCODER_IMAGE}}:{{DOCKER_TAG}} 
+	docker run --rm -it \
+		-v ./data:/app/data:z \
+		-v ./configs:/app/configs:z \
+		-v ./results:/app/results:z \
+		-v ./scripts:/app/scripts:z \
+		-v ./src:/app/src:z \
+		{{TRANSCODER_IMAGE}}:{{DOCKER_TAG}} 
 
 build-demo:
-	docker build -t {{DEMO_IMAGE}}:{{DOCKER_TAG}} -f ./docker/Demo.Dockerfile .
+	docker build -t {{DEMO_IMAGE}}:{{DOCKER_TAG}} -f ./docker/DemoServer.Dockerfile .
 
 run-demo:
-	docker run --rm -it -v /tmp:/tmp -v ./data:/app/data {{DEMO_IMAGE}}:{{DOCKER_TAG}} 
+	docker run --rm -it \
+		-v ./data:/app/data:z \
+		-v ./configs:/app/configs:z \
+		-v ./results:/app/results:z \
+		-v ./scripts:/app/scripts:z \
+		-v ./src:/app/src:z \
+		{{DEMO_IMAGE}}:{{DOCKER_TAG}} 
 
 clean: 
 	docker image prune -f
@@ -51,3 +63,6 @@ metrics SOURCE RECONSTRUCTION:
 # Render utilities
 render INFILE OUTFILE:
 	python3 ./tools/render.py {{INFILE}} data/tmp/{{OUTFILE}}
+
+demo-test:
+	docker compose -f docker-compose.demo.yaml up --build

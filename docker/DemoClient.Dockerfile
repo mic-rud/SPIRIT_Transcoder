@@ -29,7 +29,6 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN cargo install just
 
-
 RUN curl -LO https://github.com/Kitware/CMake/releases/download/v3.27.9/cmake-3.27.9-linux-x86_64.sh && \
     chmod +x cmake-3.27.9-linux-x86_64.sh && \
     ./cmake-3.27.9-linux-x86_64.sh --skip-license --prefix=/usr/local && \
@@ -43,9 +42,9 @@ RUN pip install --upgrade pip && \
 
 RUN pip install pybind11
 
-# Clone and build VPCC codec
+# Clone and build VPCC codec (v18 for demo)
 WORKDIR /app/dependencies
-RUN git clone https://github.com/MPEGGroup/mpeg-pcc-tmc2.git
+RUN git clone --branch release-v18.0 --depth=1 https://github.com/MPEGGroup/mpeg-pcc-tmc2.git
 
 # Build and Patch VPCC
 WORKDIR /app/dependencies/mpeg-pcc-tmc2
@@ -57,16 +56,19 @@ RUN ls -l /app/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/inclu
     /app/dependencies/mpeg-pcc-tmc2/patch.sh && \
     grep "SampleStreamV3CUnit" /app/dependencies/mpeg-pcc-tmc2/source/lib/PccLibBitstreamWriter/include/PCCBitstreamWriter.h || (echo "Patch failed"; exit 1)
 
-RUN rm -rf build && mkdir build && cd build \
+RUN mkdir build && cd build \
     && cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
     && make -j$(nproc)
 
+# Build tmc2 real time decoder 
+WORKDIR /app/dependencies
+RUN git clone https://github.com/benclmnt/tmc2-rs.git
+RUN cd tmc2-rs && cargo build --release --bin decoder
 
 # Build Transcoder
 WORKDIR /app
 COPY . /app
-
-RUN rm -rf build && mkdir build && cd build \
+RUN mkdir build && cd build \
    && cmake .. \
        -DPYTHON_EXECUTABLE=$(which python3) \
        -DCMAKE_PREFIX_PATH=$(python3 -m pybind11 --cmakedir) \
@@ -76,10 +78,10 @@ RUN rm -rf build && mkdir build && cd build \
 RUN ln -s /app/build/bindings/bitstream_bindings.cpython-310-x86_64-linux-gnu.so \
    /usr/local/lib/python3.10/dist-packages/bitstream_bindings.so
 
-ENV XDG_RUNTIME_DIR=/tmp/runtime-root
-RUN mkdir -p /tmp/runtime-root
+WORKDIR /app
 
-ENTRYPOINT ["/bin/bash"]
+# Force entrypoint
+#ENTRYPOINT ["/bin/bash"]
 
-#ENTRYPOINT []
-#CMD ["python3", "/app/src/run_transcoder_solo.py"]
+ENTRYPOINT []
+CMD ["python3", "/app/src/demo/client.py"]

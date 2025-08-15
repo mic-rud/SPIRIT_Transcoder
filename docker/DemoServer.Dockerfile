@@ -81,5 +81,7 @@ RUN ln -s /app/build/bindings/bitstream_bindings.cpython-310-x86_64-linux-gnu.so
 WORKDIR /app
 
 # Force entrypoint
+#ENTRYPOINT ["/bin/bash"]
+
 ENTRYPOINT []
-CMD ["/bin/bash"]
+CMD ["python3", "/app/src/run_demo_server.py"]

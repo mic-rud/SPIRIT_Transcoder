@@ -2,7 +2,7 @@
 
 # Check argument
 if [ $# -lt 3 ]; then
-  echo "Usage: $0 <gop_size> <data_base> <out_dir> [seq_cfg_override]"
+  echo "Usage: $0 <gop_size> <data_base> <out_dir>"
   exit 1
 fi
 
@@ -10,7 +10,6 @@ fi
 GOP_SIZE="$1"
 DATA_BASE="$2"
 OUT_DIR="$3"
-SEQ_CFG_OVERRIDE="$4"
 
 TOTAL_FRAMES=600
 NUM_SEGMENTS=$((TOTAL_FRAMES / GOP_SIZE))
@@ -30,7 +29,7 @@ declare -A START_FRAMES=(
 # Extend sequence to 600 frames in-place
 for INFILE in "${!START_FRAMES[@]}"; do
   START_FRAME="${START_FRAMES[$INFILE]}"
-  SRC_DIR="${DATA_BASE}/${INFILE}/Ply"
+  SRC_DIR="${DATA_BASE}/${INFILE}"
 
   # Append reversed frames: 299 to 0
   for ((i=299; i>=0; i--)); do
@@ -44,6 +43,12 @@ for INFILE in "${!START_FRAMES[@]}"; do
   echo "Extended $INFILE to 600 frames starting at $START_FRAME"
 done
 
+echo "Converting 'double' to 'float' in PLY headers..."
+find "$DATA_BASE" -type f -name "*.ply" -print0 | while IFS= read -r -d '' file; do
+  # Backup is optional, uncomment if needed:
+  # cp "$file" "$file.bak"
+  sed -i 's/\<double\>/float/g' "$file"
+done
 
 
 # Encoding settings
@@ -56,10 +61,9 @@ mkdir -p "$OUT_DIR"
 # Loop through all sequences
 for INFILE in "${!START_FRAMES[@]}"; do
   START_FRAME="${START_FRAMES[$INFILE]}"
-  DEFAULT_SEQ_CFG="$CFG_BASE/sequence/${INFILE}_vox10.cfg"
-  SEQ_CFG="${SEQ_CFG_OVERRIDE:-$DEFAULT_SEQ_CFG}"
+  SEQ_CFG="/app/configs/tmc2_configs/${INFILE}_vox9.cfg"
   
-  PLY_INPUT="${DATA_BASE}/${INFILE}/Ply/${INFILE}_vox10_%04d.ply"
+  PLY_INPUT="${DATA_BASE}/${INFILE}/${INFILE}_vox10_%04d.ply"
   RECON_OUT="${INFILE}_rec_%04d.ply"
 
   for ((PART=0; PART<NUM_SEGMENTS; PART++)); do

@@ -1,0 +1,36 @@
+version: "3.9"
+networks:
+  prototyping: {}
+
+services:
+  server:
+    build: 
+      context: .
+      dockerfile: docker/DemoServer.Dockerfile
+    container_name: demo-server
+    volumes:
+      - ./data:/app/data:z
+      - ./configs:/app/configs:z
+      - ./results:/app/results:z
+      - ./scripts:/app/scripts:z
+      - ./src:/app/src:z
+    networks: [prototyping]
+    expose: ["8000"]
+    #ports:
+      #- "8000:8001"
+
+  client:
+    build: 
+      context: .
+      dockerfile: docker/DemoClient.Dockerfile
+    container_name: demo-client
+    volumes:
+      - ./data:/app/data:z
+      - ./configs:/app/configs:z
+      - ./results:/app/results:z
+      - ./scripts:/app/scripts:z
+      - ./src:/app/src:z
+    networks: [prototyping]
+    environment:
+      WS_URL: ws://server:8000/ws
+    #command: ["python3", "/app/src/demo/client.py"]

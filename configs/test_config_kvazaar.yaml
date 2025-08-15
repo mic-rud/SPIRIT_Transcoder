@@ -4,4 +4,4 @@ output_dir: "/app/data/transcoded"
 
 codec: "kvazaar"
 rate-config: "configs/rate/R1.yaml"
-preset: "superfast"
+preset: "ultrafast"

@@ -1,8 +1,8 @@
 import bitstream_bindings as bs
-from bitstream import BitstreamIO
+from utils.bitstream import BitstreamIO
 from concurrent.futures import ProcessPoolExecutor
 import time
-from videoCoder import HEVCCoder, FFMPEGCodec
+from transcoder.videoCoder import HEVCCoder, FFMPEGCodec
 def transcode_bytes(bytestream, config, video_type):
     coder = FFMPEGCodec()
     coder.init_codec(config, video_type)
@@ -25,7 +25,7 @@ class Transcoder:
         """
         # Load and Parse Bitstream
         if type(in_stream) is str:
-            context = self.bitstreamIO.read_bitstream(config["in_path"], trace=True)
+            context = self.bitstreamIO.read_bitstream(in_stream, trace=False)
         else: 
             raise TypeError("Parsing from memory not yet implemented")
 
@@ -56,9 +56,12 @@ class Transcoder:
         # Collect results and re-encode substreams
         for key, future in futures.items():
             encoded = future.result()
+
+            size_ratio = len(stream_bytes[key]) / len(encoded)
+            print("{}: RATE RATO: {}".format(key, size_ratio))
             video_streams[key].set_bytes(encoded)
             video_streams[key].byteStreamToSampleStream()
 
         # Write the data again
-        self.bitstreamIO.write_bitstream(context, out_stream, trace=True)
+        self.bitstreamIO.write_bitstream(context, out_stream, trace=False)
         return 

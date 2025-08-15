@@ -31,7 +31,12 @@ class FFMPEGCodec:
             cmd.extend(["-crf", str(config.get("attQP", "20"))])
             cmd.extend([
                 "-x265-params",
-                f"keyint=2:min-keyint=2:no-scenecut=1:bframes=0:frame-threads={config.get('attEncThreads', 1)}:pools={config.get('attEncThreads', 1)}"
+                f"keyint=2:\
+                min-keyint=2:\
+                no-scenecut=1:\
+                bframes=0:\
+                frame-threads={config.get('attEncThreads', 1)}:\
+                pools={config.get('attEncThreads', 1)}"
             ])
 
         elif video_type == "geo":
@@ -47,7 +52,6 @@ class FFMPEGCodec:
             cmd.extend(["-crf", str(config.get("occQP", "20"))])
 
         cmd.extend(["-f", "hevc", "pipe:1"])
-        print(cmd)
         return cmd
 
 
@@ -56,51 +60,49 @@ class FFMPEGCodec:
         pass
 
     def _init_kvazaar(self, config, video_type):
-        cmd = ["ffmpeg", "-y", "-f", "hevc", "-i", "pipe:0"]
+        cmd = ["ffmpeg", "-loglevel", "quiet", "-y", "-f", "hevc", "-i", "pipe:0"]
 
         cmd.extend(["-c:v", "libkvazaar"])
 
+     
         if video_type == "att":
-            cmd.extend(["-preset", config.get("attPreset", "medium")])
-            cmd.extend(["-crf", str(config.get("attQP", "20"))])
-            cmd.extend(["-kvazaar-params", f"period=2:gop=0:threads={config.get('geoEncThreads', 1)}"])
+            kvazaar_params = {
+                "preset": config.get("attPreset", "medium"),
+                "period": "2",
+                "gop": "0",
+                "threads": str(config.get("attEncThreads", 1)),
+                "qp": str(config.get("attQP", 20)),
+            }
 
         elif video_type == "geo":
-            cmd.extend(["-preset", config.get("geoPreset", "medium")])
-            cmd.extend(["-crf", str(config.get("geoQP", "20"))])
-            cmd.extend(["-kvazaar-params", f"period=2:gop=0:threads={config.get('geoEncThreads', 1)}"])
+            kvazaar_params = {
+                "preset": config.get("geoPreset", "medium"),
+                "period": "2",
+                "gop": "0",
+                "threads": str(config.get("geoEncThreads", 1)),
+                "qp": str(config.get("geoQP", 20)),
+            }
 
         elif video_type == "occ":
-            cmd.extend(["-preset", config.get("occPreset", "medium")])
-            cmd.extend(["-crf", str(config.get("occQP", "20"))])
+            kvazaar_params = {
+                "period": "1",
+                "gop": "0",
+                "threads": str(config.get("occEncThreads", 1)),
+                "qp": str(config.get("occQP", 20)),
+                "preset": config.get("occPreset", "medium"),
+            }
+
+        param_str = ",".join(f"{k}={v}" for k, v in kvazaar_params.items())
+        cmd += ["-kvazaar-params", param_str]
 
         cmd.extend(["-f", "hevc", "pipe:1"])
-        print(cmd)
+        print(cmd, flush=True)
         return cmd
 
 
 
     def transcode(self, video_bytes, config, video_type):
         cmd = self.init_codec(config, video_type)
-        """
-        cmd = [
-            "ffmpeg",
-            #"-loglevel", "debug",
-            "-y",                 # overwrite output files
-            "-f", "hevc",        # input is HEVC bitstream
-            "-i", "pipe:0",      # from stdin
-            "-c:v", "libkvazaar",   # new codec
-            "-profile:v", config["profile"],
-            "-preset", config["preset"],
-            "-tune", config["tune"],
-            #"-x265-params", "keyint=2:min-keyint=2:no-scenecut=1:bframes=0",
-            "-kvazaar-params", "",
-            "-crf", str(config[video_type]["QP"]),
-            "-r", "30",             #FPS
-            "-f", "hevc",         # output container format
-            "pipe:1"
-        ]
-        """
 
         process = subprocess.Popen(
             cmd,
@@ -111,8 +113,7 @@ class FFMPEGCodec:
 
         out_bytes, err = process.communicate(input=video_bytes)
 
-        print("FFmpeg log:\n", err.decode("utf-8"))
-
+        print(err, flush=True)
         if process.returncode != 0:
             raise RuntimeError("Transcoding failed")
 

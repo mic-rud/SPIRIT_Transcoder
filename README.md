@@ -7,13 +7,14 @@ snap install --edge --classic just
 just can be installed through a number of ways, check out their github for alternatives.
 
 ### Building the container
+The just file wraps the transcoder container
 ```
-just build
+just build-transcoder
 ```
 
 ### Running the container
 ``` 
-just run
+just run-transcoder
 ```
 
 ### Utilities for inside the container
@@ -21,7 +22,6 @@ You can easily decode a bitstream with V-PCC using
 ```
 just decode FILEPATH
 ```
-
 
 
 ## Test Data
@@ -33,8 +33,24 @@ First, download some data using
 Then, in the docker container:
 ```
   ./scripts/prepare_data.sh
-----
+```
 
+## Demo
+We include code for the demo at the XX conference here:
+
+To showcase our system on lower end hardware, we use a downsampled variant of the point cloud.
+It can be prepared from the 8iVFBv2 dataset (see above section for a download script) with the following code:
+
+
+
+----
+## Overview of scripts
+
+In the scripts folder, we provide a number of scripts to ease development.
+
+DESCRIBE
+
+----
 ## Setup
 Setup a virtual environment
 

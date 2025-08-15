@@ -2,9 +2,9 @@ import time
 import yaml
 import csv
 from pathlib import Path
-from transcoder import Transcoder
+from transcoder.transcoder import Transcoder
 import bitstream_bindings as bs
-from bitstream import BitstreamIO
+from io.bitstream import BitstreamIO
 
 def transcode(config_path, sequences, segment_ids, output_csv):
 # Load base config
