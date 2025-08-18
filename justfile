@@ -1,5 +1,6 @@
 TRANSCODER_IMAGE := "pyrabbit-transcoder"
 DEMO_IMAGE := "pyrabbit-demo"
+DEMOCLIENT_IMAGE := "pyrabbit-demo-client"
 DOCKER_TAG := "latest"
 
 
@@ -26,6 +27,18 @@ run-demo:
 		-v ./scripts:/app/scripts:z \
 		-v ./src:/app/src:z \
 		{{DEMO_IMAGE}}:{{DOCKER_TAG}} 
+
+build-demo-client:
+	docker build -t {{DEMOCLIENT_IMAGE}}:{{DOCKER_TAG}} -f ./docker/DemoClient.Dockerfile .
+
+run-demo-client:
+	docker run --rm -it \
+		-v ./data:/app/data:z \
+		-v ./configs:/app/configs:z \
+		-v ./results:/app/results:z \
+		-v ./scripts:/app/scripts:z \
+		-v ./src:/app/src:z \
+		{{DEMOCLIENT_IMAGE}}:{{DOCKER_TAG}} 
 
 clean: 
 	docker image prune -f

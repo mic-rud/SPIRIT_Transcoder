@@ -79,6 +79,7 @@ for INFILE in "${!START_FRAMES[@]}"; do
       --uncompressedDataPath="$PLY_INPUT" \
       --startFrameNumber="$OFFSET" \
       --frameCount=$GOP_SIZE \
+      --profileReconstructionIdc=0 \
       --reconstructedDataPath="$RECON_OUT" \
       --compressedStreamPath="$OUT_DIR/$OUTFILE"
 

@@ -7,18 +7,20 @@ from demo.server import TranscodingService, WSCommand
 import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
+config_path = "/app/configs/demo_config.yaml"
+media_dir = "/app/data/encoded/downsampled"
+processed_dir = "/app/data/processed"
+num_segments = 20
+segment_duration = 0.5
 default_config = {
     "key": 0
-
 }
+
 app = FastAPI()
 worker = Transcoder(default_config)
 
-config_path = "/app/configs/demo_config.yaml"
 with open(config_path, "r") as f:
     base_config = yaml.safe_load(f)
-
-# Load rate config
 rate_config_path = base_config.get("rate-config", "rate/R1.yaml")
 with open(rate_config_path, "r") as f:
     rate_config = yaml.safe_load(f)
@@ -32,10 +34,10 @@ initial_config = {
 
 manager = TranscodingService(
     worker=worker,
-    media_dir="/app/data/encoded/downsampled", 
-    processed_dir="/app/data/processed", 
-    num_segments=20,
-    segment_duration=0.5)
+    media_dir=media_dir, 
+    processed_dir=processed_dir, 
+    num_segments=num_segments,
+    segment_duration=segment_duration)
 manager.update_config(initial_config)
 
 @app.websocket("/ws")

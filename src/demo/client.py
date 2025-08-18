@@ -17,6 +17,9 @@ class DemoClient:
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
 
     async def _connect(self):
+        """
+        
+        """
         retries = 10
         for attempt in range(retries):
             try:
