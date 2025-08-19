@@ -1,6 +1,8 @@
 TRANSCODER_IMAGE := "pyrabbit-transcoder"
 DEMO_IMAGE := "pyrabbit-demo"
 DEMOCLIENT_IMAGE := "pyrabbit-demo-client"
+TMC2_IMAGE := "tmc2"
+
 DOCKER_TAG := "latest"
 
 
@@ -16,8 +18,20 @@ run-transcoder:
 		-v ./src:/app/src:z \
 		{{TRANSCODER_IMAGE}}:{{DOCKER_TAG}} 
 
+build-tmc2:
+	docker build -t {{TMC2_IMAGE}}:{{DOCKER_TAG}} -f ./docker/tmc2v18.Dockerfile .
+
+run-tmc2:
+	docker run --rm -it \
+		-v ./data:/app/data:z \
+		-v ./configs:/app/configs:z \
+		-v ./results:/app/results:z \
+		-v ./scripts:/app/scripts:z \
+		-v ./src:/app/src:z \
+		{{TMC2_IMAGE}}:{{DOCKER_TAG}} 
+
 build-demo:
-	docker build -t {{DEMO_IMAGE}}:{{DOCKER_TAG}} -f ./docker/DemoServer.Dockerfile .
+	docker build -t {{DEMO_IMAGE}}:{{DOCKER_TAG}} -f ./docker/tmc2v18.Dockerfile .
 
 run-demo:
 	docker run --rm -it \

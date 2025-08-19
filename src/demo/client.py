@@ -4,7 +4,32 @@ import json
 import os
 import yaml
 import websockets
+from threading import Thread
+import multiprocessing
 from typing import Optional, Dict, Any
+from utils import FrameBuffer, Player
+
+import tmc2rs
+import tempfile
+import os
+
+import concurrent.futures
+
+
+def decode_frames(msg: bytes, max_frames: int = 15):
+    t0 = time.time()
+    decoder = tmc2rs.PyTMC2Decoder(msg)
+    frames = []
+
+    for _ in range(max_frames):
+        frame = decoder.next_frame()
+        if frame is None:
+            break
+        frames.append(frame)
+
+    decoder.close()
+    print("Time decoder {}".format(time.time() - t0), flush=True)
+    return frames
 
 class DemoClient:
     def __init__(
@@ -15,6 +40,12 @@ class DemoClient:
         self.ws_url = ws_url
         self.coding_config = coding_config 
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
+
+        self.buffer = FrameBuffer(capacity=100)
+        self.player = Player(self.buffer, target_fps=30)
+
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        self.pool = multiprocessing.Pool(processes=4)
 
     async def _connect(self):
         """
@@ -41,11 +72,39 @@ class DemoClient:
         await self._send_json({
             "type": "AdjustConfig",
             "coding_config": config,
-            "sequence": "longdress",
+            "sequence": "loot",
         })
 
     async def _send_initial_config(self):
         await self.adjust_config(self.coding_config)
+
+    def decode_and_buffer(self, msg, num_frames=15):
+        t0 = time.time()
+        decoder = tmc2rs.PyTMC2Decoder(msg)
+
+        try:
+            count = 0
+            while count < num_frames:
+                frame = decoder.next_frame()
+                print("[Decoder  frame {} received ]".format(count))
+                if frame is None:
+                    print("[Decoder end of stream a frame {}]".format(count), flush=True)
+                    break
+                count += 1
+                self.buffer.add_frame(frame)
+
+            elapsed = time.time() - t0
+            print("[Decoder closed in {}s]".format(elapsed))
+            decoder.close()
+
+        except Exception as e:
+            print(f"[Decoder] failed to decode frame - {e}")
+
+
+    async def handle_decoded_frames(self, result):
+        for frame in result:
+            await self.buffer.add_frame(frame)
+
 
     async def _recv_data(self):
         """Receive raw data"""
@@ -57,9 +116,15 @@ class DemoClient:
                 msg = await self._ws.recv()
                 print("[client] Message received", flush=True)
                 if isinstance(msg, bytes):
-                    print(f"[client] got frame: {len(msg)} bytes", flush=True)
                     print("[Client] Receive timestamp {}".format(time.time()))
+                    import hashlib
+                    print(f"[RX] {len(msg)} bytes sha256={hashlib.sha256(msg).hexdigest()} at {time.time()}")
+
                     count += 1
+
+                    #Thread(target=self.decode_and_buffer, args=(msg,), daemon=True).start()
+                    #self.executor.submit(self.decode_and_buffer, msg)
+                    self.pool.apply_async(decode_frames, args=(msg,), callback=self.handle_decoded_frames)
                     
                     # TODO Dummy config adjustment
                     coding_config = self.coding_config
@@ -78,6 +143,9 @@ class DemoClient:
     async def run(self):
         """Entry point: connect, send initial config, receive frames."""
         await self._connect()
+
+        asyncio.create_task(self.player.run())
+
         try:
             await self._send_initial_config()
             await self._recv_data()

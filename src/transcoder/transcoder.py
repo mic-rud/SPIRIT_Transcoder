@@ -13,7 +13,7 @@ class Transcoder:
     def __init__(self, config):
         #self.video_coder = HEVCCoder(config)
         self.bitstreamIO = BitstreamIO()
-        self.workers = ProcessPoolExecutor(max_workers=3)
+        self.workers = ProcessPoolExecutor(max_workers=2)
 
     def transcode(self, in_stream, out_stream, config):
         """
@@ -29,7 +29,7 @@ class Transcoder:
         else: 
             raise TypeError("Parsing from memory not yet implemented")
 
-         # Extract and convert video substreams to byte streams
+        # Extract and convert video substreams to byte streams
         video_streams = {
             #"occ": context.getVideoBitstream(bs.PCCVideoType.VIDEO_OCCUPANCY),
             "geo": context.getVideoBitstream(bs.PCCVideoType.VIDEO_GEOMETRY),

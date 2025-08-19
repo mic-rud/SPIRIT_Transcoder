@@ -31,7 +31,8 @@ RUN pip install "maturin[patchelf]"
 
 # Fast tmc2 decoder
 WORKDIR /app/dependencies/
-RUN git clone https://github.com/mic-rud/tmc2-rs
+COPY ./dependencies /app/dependencies
+#RUN git clone https://github.com/mic-rud/tmc2-rs
 WORKDIR /app/dependencies/tmc2-rs
 RUN maturin build --release -o dist
 RUN python3 -m pip install dist/*.whl

@@ -96,7 +96,6 @@ class FFMPEGCodec:
         cmd += ["-kvazaar-params", param_str]
 
         cmd.extend(["-f", "hevc", "pipe:1"])
-        print(cmd, flush=True)
         return cmd
 
 
@@ -113,7 +112,6 @@ class FFMPEGCodec:
 
         out_bytes, err = process.communicate(input=video_bytes)
 
-        print(err, flush=True)
         if process.returncode != 0:
             raise RuntimeError("Transcoding failed")
 

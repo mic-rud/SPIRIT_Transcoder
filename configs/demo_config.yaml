@@ -1,4 +1,3 @@
 # Streams (Remove)
-codec: "kvazaar"
+codec: "libx265"
 rate-config: "configs/rate/R1.yaml"
-preset: "slow"

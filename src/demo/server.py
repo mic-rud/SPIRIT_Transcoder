@@ -4,6 +4,7 @@ import os
 
 import contextlib
 import io
+import tempfile
 
 from pydantic import BaseModel
 from typing import Optional, List, Tuple, Dict
@@ -54,7 +55,12 @@ class TranscodingService:
 
     def _process(self, in_path: str, out_path: str, config: Dict):
         """Run the transcoding process."""
-        self.worker.transcode(in_path, out_path, config)
+        try:
+            self.worker.transcode(in_path, out_path, config)
+            self.log("Transcoder done")
+        except Exception as e:
+            self.log(f"Transcoder FAILED: {e}")
+
 
 
     def _get_segment_paths(self, sequence: str, index: int) -> tuple[str, str]:
@@ -79,14 +85,24 @@ class TranscodingService:
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, self._process, in_path, out_path, config["coding_config"])
 
-        # Sending
-        if self.client and os.path.exists(out_path):
-            with open(out_path, "rb") as f:
-                data = f.read()
-            self.log(f"Sending {len(data)} bytes for segment {segment_index}")
-            await self.client.send_bytes(data)
-        else:
-            self.log(f"Failed sending segment {segment_index}")
+        try:
+            if self.client and os.path.exists(out_path):
+                print(out_path)
+                with open(in_path, "rb") as f: # TODO should be out path
+                    data = f.read()
+                self.log(f"Sending {len(data)} bytes for segment {segment_index}")
+                import hashlib
+                size = len(data)
+                sha = hashlib.sha256(data).hexdigest()
+                self.log(f"TX seg {segment_index}: {size} bytes sha256={sha}")
+                await self.client.send_bytes(data)
+            else:
+                self.log(f"Failed sending segment {segment_index}")
+
+        # Clean up temp file
+        finally:
+            if os.path.exists(out_path):
+                os.remove(out_path)
 
     async def start_loop(self):
         """
