@@ -59,7 +59,8 @@ const quaternion = new THREE.Quaternion(); // To rotate based on the headset's o
 
     // Extract points and colors directly from the buffer
     const float32Array = new Float32Array(buffer, 0, pointCount * 3); // Points
-    const uint8Array = new Uint8Array(buffer, pointCount * pointSize, pointCount * 3); // Colors
+    //const colorOffset = pointCount * 12;
+    const uint8Array = new Uint8Array(buffer, pointCount * 3, pointCount * 3); // Colors
     const normalizedColors = new Float32Array(uint8Array.length);
     for (let i = 0; i < uint8Array.length; i++) {
         normalizedColors[i] = uint8Array[i] / 255; // Normalize to [0, 1]
@@ -118,9 +119,22 @@ function centerPointCloud() {
 
 
 
+// FPS counting
+let lastFrame = performance.now()
+let fps = 0;
+const alpha = 0.1;
+
 // Animate and Render Scene
 function animate() {
     renderer.setAnimationLoop(() => {
+        const now = performance.now();
+        const delta = (now - lastFrame) / 1000;
+        lastFrame = now;
+
+        const currentFPS = 1/delta;
+        fps = fps * (1-alpha) + currentFPS * alpha;
+        console.log('[VISUALZIER] FPS ${fps.toFixed(2)}');
+
         requestAnimationFrame(animate);
         controls.update();
         renderer.render(scene, camera);

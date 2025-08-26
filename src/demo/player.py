@@ -1,5 +1,7 @@
+import os
+import zmq
+import zmq.asyncio
 import asyncio
-import websockets
 import numpy as np
 import struct
 import time
@@ -11,46 +13,46 @@ class Player:
         self.buffer = buffer
         self.target_fps = target_fps
         self.frame_interval = 1.0 / target_fps
-        self.ws_port = ws_port
 
         # FPS tracking
         self.fps_ema_alpha = 0.1
         self.actual_fps = float(target_fps)
 
+        zmq_push_addr = os.getenv("ZMQ_PUSH_SOCKET")
+        self.zmq_context = zmq.asyncio.Context()
+        self.zmq_socket = self.zmq_context.socket(zmq.PUSH)
+        self.zmq_socket.connect(zmq_push_addr)
+
     def pack_frame(self, frame):
         """
-        Pack a single frame into a binary blob for WebSocket streaming.
+        Pack a single frame into a binary blob for 
         Format: [x,y,z float32]*N + [r,g,b uint8]*N
         """
         positions = frame["positions"].astype(np.float32)
         colors = (frame["colors"] * 255).astype(np.uint8)
         return positions.tobytes() + colors.tobytes()
 
-    async def websocket_handler(self, websocket):
+    async def render_loop(self):
         """
-        Send frames to a connected WebSocket client.
+        Send frames to a connected 
         """
-        print("[WebSocket] Client connected")
         prev_frame_time = time.time()
 
-        try:
-            while True:
-                frame_package = self.buffer.get()
-                if frame_package is None:
-                    print("[Player] Shutting down WebSocket")
-                    break
+        while True:
+            frame_package = self.buffer.get()
+            if frame_package is None:
+                print("[Player] Shutting down Renderer")
+                break
 
-                frame_id, frame = frame_package
-                packed = self.pack_frame(frame)
+            frame_id, frame = frame_package
+            packed = self.pack_frame(frame)
 
-                # Send frame to browser
-                await websocket.send(packed)
-                print(f"[Player] Sent frame {frame_id} with {len(frame['positions'])} points", flush=True)
+            # Send frame to browser
+            await self.zmq_socket.send(packed)
+            print(f"[Player] Sent frame {frame_id} with {len(frame['positions'])} points", flush=True)
 
-                # FPS control
-                prev_frame_time = self.fps_monitor(prev_frame_time)
-        except websockets.exceptions.ConnectionClosed:
-            print("[WebSocket] Client disconnected")
+            # FPS control
+            prev_frame_time = self.fps_monitor(prev_frame_time)
 
     def fps_monitor(self, prev_frame_time):
         """
@@ -69,16 +71,9 @@ class Player:
         time.sleep(sleep_time)
         return now
 
-    async def run_ws_server(self):
-        """
-        Start the WebSocket server and wait for client connections.
-        """
-        print(f"[WebSocket] Starting server on ws://0.0.0.0:{self.ws_port}")
-        async with websockets.serve(self.websocket_handler, "0.0.0.0", self.ws_port, max_size=None):
-            await asyncio.Future()  # Keep server alive
 
     def start(self):
         """
         Entry point for running the player in async mode.
         """
-        asyncio.run(self.run_ws_server())
+        asyncio.run(self.render_loop())

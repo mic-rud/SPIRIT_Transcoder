@@ -15,14 +15,6 @@ RUN apt-get update && apt-get install -y \
     && ln -sf /usr/bin/pip3 /usr/bin/pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Node JS
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g vite concurrently
-WORKDIR /app/src/demo/visualizer
-COPY ./src/demo/visualizer/* .
-RUN npm install
-
 # Cargo and just
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -46,7 +38,4 @@ RUN python3 -m pip install dist/*.whl
 
 WORKDIR /app
 
-EXPOSE 5173
-EXPOSE 8765
-
-CMD ["concurrently", "python3 src/demo/client.py", "npm run dev --prefix src/demo/visualizer"]
+CMD ["python3", "src/demo/client.py"]

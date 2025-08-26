@@ -31,8 +31,20 @@ services:
       - ./src:/app/src:z
     networks: [prototyping]
     environment:
-      WS_URL: ws://server:8000/ws
-    ports:
-      - "5173:5173" # Vite frontend 
-      - "8765:8765" # Player WebSocket for browser
+      WS_URL: ws://server:8000/ws 
+      ZMQ_PUSH_SOCKET: tcp://visualizer:5556
     #command: ["python3", "/app/src/demo/client.py"]
+
+  visualizer:
+    build:
+      context: ./src/demo/visualizer
+      dockerfile: ../../../docker/DemoVisualizer.Dockerfile
+    container_name: visualizer
+    ports:
+      - "5173:5173"
+      - "8765:8765"
+    environment:
+      ZMQ_PULL_SOCKET: tcp://*:5556
+    networks: [prototyping]
+    stdin_open: true
+    tty: true
