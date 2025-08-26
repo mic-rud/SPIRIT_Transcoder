@@ -20,9 +20,9 @@ CFG_BASE="/app/dependencies/mpeg-pcc-tmc2/cfg"
 
 # Arrays for input sequences and their start frames
 declare -A START_FRAMES=(
-  [redandblack]=1450
+  #[redandblack]=1450
   [longdress]=1051
-  [soldier]=536
+  #[soldier]=536
   [loot]=1000
 )
 
@@ -80,7 +80,7 @@ for INFILE in "${!START_FRAMES[@]}"; do
       --startFrameNumber="$OFFSET" \
       --frameCount=$GOP_SIZE \
       --profileReconstructionIdc=0 \
-      --reconstructedDataPath="$RECON_OUT" \
+      --occupancyPrecision=1 \
       --compressedStreamPath="$OUT_DIR/$OUTFILE"
 
     echo "Encoded $INFILE (part $PART, start frame: $OFFSET)  $OUTFILE"

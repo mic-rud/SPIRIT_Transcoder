@@ -5,7 +5,7 @@ ENV PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
 ENV PKG_CONFIG_ALLOW_SYSTEM_LIBS=1
 
 RUN apt-get update && apt-get install -y \
-    python3.10 python3.10-dev python3.10-distutils \
+    python3.10 python3.10-dev python3.10-distutils python3-pip \
     libegl1 libgl1-mesa-glx libgl1-mesa-dri \
     libxml2-dev libpng-dev \
     libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
@@ -15,6 +15,13 @@ RUN apt-get update && apt-get install -y \
     && ln -sf /usr/bin/pip3 /usr/bin/pip \
     && rm -rf /var/lib/apt/lists/*
 
+# Node JS
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g vite concurrently
+WORKDIR /app/src/demo/visualizer
+COPY ./src/demo/visualizer/* .
+RUN npm install
 
 # Cargo and just
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
@@ -39,4 +46,7 @@ RUN python3 -m pip install dist/*.whl
 
 WORKDIR /app
 
-ENTRYPOINT []
+EXPOSE 5173
+EXPOSE 8765
+
+CMD ["concurrently", "python3 src/demo/client.py", "npm run dev --prefix src/demo/visualizer"]

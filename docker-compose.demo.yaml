@@ -32,4 +32,7 @@ services:
     networks: [prototyping]
     environment:
       WS_URL: ws://server:8000/ws
-    command: ["python3", "/app/src/demo/client.py"]
+    ports:
+      - "5173:5173" # Vite frontend 
+      - "8765:8765" # Player WebSocket for browser
+    #command: ["python3", "/app/src/demo/client.py"]

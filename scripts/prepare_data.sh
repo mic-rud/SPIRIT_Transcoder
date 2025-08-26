@@ -21,9 +21,9 @@ CFG_BASE="/app/dependencies/mpeg-pcc-tmc2/cfg"
 
 # Arrays for input sequences and their start frames
 declare -A START_FRAMES=(
-  [redandblack]=1450
-  [longdress]=1051
-  [soldier]=536
+  #[redandblack]=1450
+  #[longdress]=1051
+  #[soldier]=536
   [loot]=1000
 )
 
@@ -72,6 +72,7 @@ for INFILE in "${!START_FRAMES[@]}"; do
       --config="$CFG_CONDITION" \
       --config="$SEQ_CFG" \
       --config="$CFG_RATE" \
+      --profileReconstructionIdc=0 \
       --uncompressedDataPath="$PLY_INPUT" \
       --startFrameNumber="$OFFSET" \
       --frameCount=$GOP_SIZE \
