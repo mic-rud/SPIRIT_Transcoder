@@ -2,6 +2,7 @@ import time
 import multiprocessing
 import numpy as np
 import tmc2rs
+from threading import Thread
 
 def decode_fn(msg: bytes, max_frames: int = 15):
     """Decode V3C bitstream into frames."""
@@ -22,7 +23,7 @@ def decode_fn(msg: bytes, max_frames: int = 15):
     return frames
 
 
-def _worker_loop(in_q, out_q):
+def _worker_loop(in_q, result_queue):
     while True:
         item = in_q.get()
         if item is None:
@@ -30,8 +31,7 @@ def _worker_loop(in_q, out_q):
         task_id, msg = item
         try:
             frames = decode_fn(msg)
-            for frame in frames:
-                out_q.put((task_id, frame))
+            result_queue.put((task_id, frames))
         except Exception as e:
             print(f"[Decoder Worker] Error: {e}", flush=True)
 
@@ -39,20 +39,29 @@ def _worker_loop(in_q, out_q):
 class DecoderPool:
     def __init__(self, num_workers):
         self.in_queue = multiprocessing.Queue(32)
+        self.result_queue = multiprocessing.Queue(32)
         self.out_queue = multiprocessing.Queue(300)
         self.procs = []
         self.next_task_id = 0
+        self.expected_task_id = 0
+        self.buffer = {}
         self.num_workers = num_workers
+        self.sorter_thread = None
+        self.running = False
 
     def start(self):
+        self.running = True
         for _ in range(self.num_workers):
             p = multiprocessing.Process(
                 target=_worker_loop,
-                args=(self.in_queue, self.out_queue),
+                args=(self.in_queue, self.result_queue),
                 daemon=True,
             )
             p.start()
             self.procs.append(p)
+
+        self.sorter_thread = Thread(target=self._sorter_loop, daemon=True)
+        self.sorter_thread.start()
 
     def submit(self, msg):
         self.in_queue.put((self.next_task_id, msg))
@@ -63,3 +72,22 @@ class DecoderPool:
             self.in_queue.put(None)
         for p in self.procs:
             p.join()
+        if self.sorter_thread:
+            self.sorter_thread.join()
+
+
+    def _sorter_loop(self):
+        """
+        Pulls completed jobs from result_queue, buffers them,
+        and releases frames to out_queue in task order.
+        """
+        while self.running:
+            task_id, frames = self.result_queue.get()
+            self.buffer[task_id] = frames
+
+            # Emit all ready tasks in order
+            while self.expected_task_id in self.buffer:
+                frames = self.buffer.pop(self.expected_task_id)
+                for frame in frames:
+                    self.out_queue.put((self.expected_task_id, frame))
+                self.expected_task_id += 1

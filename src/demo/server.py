@@ -2,10 +2,6 @@ import time
 import asyncio
 import os
 
-import contextlib
-import io
-import tempfile
-
 from pydantic import BaseModel
 from typing import Optional, List, Tuple, Dict
 
@@ -56,6 +52,8 @@ class TranscodingService:
     def _process(self, in_path: str, out_path: str, config: Dict):
         """Run the transcoding process."""
         try:
+            self.log("Starting transcoder")
+            self.log(f"{self.worker} transcoder")
             self.worker.transcode(in_path, out_path, config)
             self.log("Transcoder done")
         except Exception as e:
@@ -91,10 +89,7 @@ class TranscodingService:
                 with open(in_path, "rb") as f: # TODO should be out path
                     data = f.read()
                 self.log(f"Sending {len(data)} bytes for segment {segment_index}")
-                import hashlib
-                size = len(data)
-                sha = hashlib.sha256(data).hexdigest()
-                self.log(f"TX seg {segment_index}: {size} bytes sha256={sha}")
+       
                 await self.client.send_bytes(data)
             else:
                 self.log(f"Failed sending segment {segment_index}")

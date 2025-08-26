@@ -1,5 +1,5 @@
 # Base image for Ubuntu
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Prevent interactive prompts during installation
 ARG DEBIAN_FRONTEND=noninteractive
@@ -27,7 +27,7 @@ RUN npm install -g concurrently
 
 # Install Python dependencies
 COPY ./requirements.txt ./requirements.txt
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
 COPY . . 
 

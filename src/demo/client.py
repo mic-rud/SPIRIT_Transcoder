@@ -24,7 +24,7 @@ class DemoClient:
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
 
         # Decoder
-        self.decoder_pool = DecoderPool(num_workers=3)
+        self.decoder_pool = DecoderPool(num_workers=2)
         self.decoder_pool.start()
 
         # Player

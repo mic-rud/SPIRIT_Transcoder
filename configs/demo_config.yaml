@@ -1,4 +1,4 @@
 # Streams (Remove)
-#codec: "libx265"
-codec: "kvazaar"
+codec: "libx265"
+#codec: "kvazaar"
 rate-config: "configs/rate/R1.yaml"

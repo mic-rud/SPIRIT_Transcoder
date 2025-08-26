@@ -59,11 +59,11 @@ const quaternion = new THREE.Quaternion(); // To rotate based on the headset's o
 
     // Extract points and colors directly from the buffer
     const float32Array = new Float32Array(buffer, 0, pointCount * 3); // Points
-    //const colorOffset = pointCount * 12;
-    const uint8Array = new Uint8Array(buffer, pointCount * 3, pointCount * 3); // Colors
+    const colorOffset = pointCount * 12;
+    const uint8Array = new Uint8Array(buffer, colorOffset, pointCount * 3); // Colors
     const normalizedColors = new Float32Array(uint8Array.length);
     for (let i = 0; i < uint8Array.length; i++) {
-        normalizedColors[i] = uint8Array[i] / 255; // Normalize to [0, 1]
+        normalizedColors[i] = 1 - (uint8Array[i] / 255); // Normalize to [0, 1]
     }
 
     // Apply scaling to fit the point cloud in the camera's view

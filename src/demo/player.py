@@ -45,6 +45,8 @@ class Player:
                 break
 
             frame_id, frame = frame_package
+            print(frame_id)
+            print(frame)
             packed = self.pack_frame(frame)
 
             # Send frame to browser

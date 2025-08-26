@@ -23,9 +23,12 @@ class Transcoder:
             out_stream (str): Path to the transcoded stream
             config (dict): Dictionary containing the transcoding configuration
         """
+        print(in_stream)
+        import os
+        print(os.path.exists(in_stream))
         # Load and Parse Bitstream
         if type(in_stream) is str:
-            context = self.bitstreamIO.read_bitstream(in_stream, trace=False)
+            context = self.bitstreamIO.read_bitstream(in_stream, trace=True)
         else: 
             raise TypeError("Parsing from memory not yet implemented")
 
