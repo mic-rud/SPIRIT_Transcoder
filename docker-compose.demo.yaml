@@ -4,7 +4,7 @@ networks:
 
 services:
   server:
-    platform: linux/amd64
+    #attach: false
     build: 
       context: .
       dockerfile: docker/DemoServerMac.Dockerfile
@@ -20,7 +20,7 @@ services:
     command: ["python3", "/app/src/run_demo_server.py"]
 
   client:
-    platform: linux/amd64
+    #attach: false
     build: 
       context: .
       dockerfile: docker/DemoClientMac.Dockerfile
@@ -35,9 +35,12 @@ services:
     environment:
       WS_URL: ws://server:8000/ws 
       ZMQ_PUSH_SOCKET: tcp://visualizer:5556
+    ports:
+      - "5000:5000"
     #command: ["python3", "/app/src/demo/client.py"]
 
   visualizer:
+    #attach: false
     build:
       context: ./src/demo/visualizer
       dockerfile: ../../../docker/DemoVisualizer.Dockerfile

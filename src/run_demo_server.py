@@ -10,7 +10,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 config_path = "/app/configs/demo_config.yaml"
 media_dir = "/app/data/encoded/demo_vox9"
 processed_dir = "/app/data/processed"
-num_segments = 20
+num_segments = 40
 segment_duration = 0.5
 default_config = {
     "key": 0

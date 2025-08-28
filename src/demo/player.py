@@ -28,8 +28,8 @@ class Player:
         Pack a single frame into a binary blob for 
         Format: [x,y,z float32]*N + [r,g,b uint8]*N
         """
-        positions = frame["positions"].astype(np.float32)
-        colors = (frame["colors"] * 255).astype(np.uint8)
+        positions = frame["positions"].astype(np.float16)
+        colors = 255 - (frame["colors"] * 255).astype(np.uint8)
         return positions.tobytes() + colors.tobytes()
 
     async def render_loop(self):
@@ -45,13 +45,11 @@ class Player:
                 break
 
             frame_id, frame = frame_package
-            print(frame_id)
-            print(frame)
             packed = self.pack_frame(frame)
 
             # Send frame to browser
             await self.zmq_socket.send(packed)
-            print(f"[Player] Sent frame {frame_id} with {len(frame['positions'])} points", flush=True)
+            #print(f"[Player] Sent frame {frame_id} with {len(frame['positions'])} points", flush=True)
 
             # FPS control
             prev_frame_time = self.fps_monitor(prev_frame_time)
@@ -68,7 +66,7 @@ class Player:
             self.fps_ema_alpha * (1.0 / frame_time)
             + (1 - self.fps_ema_alpha) * self.actual_fps
         )
-        print(f"[Player] FPS: {self.actual_fps:.2f} | Frame Time: {frame_time:.2f}s")
+        #print(f"[Player] FPS: {self.actual_fps:.2f} | Frame Time: {frame_time:.2f}s")
 
         time.sleep(sleep_time)
         return now

@@ -5,11 +5,13 @@ import json
 import os
 import yaml
 import websockets
+import threading
 import multiprocessing as mp
 from typing import Optional, Dict, Any
 
 from player import Player
 from decoder import DecoderPool
+from gui.backend import create_flask_app
 
 
 
@@ -24,7 +26,7 @@ class DemoClient:
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
 
         # Decoder
-        self.decoder_pool = DecoderPool(num_workers=2)
+        self.decoder_pool = DecoderPool(num_workers=6)
         self.decoder_pool.start()
 
         # Player
@@ -44,6 +46,7 @@ class DemoClient:
         """
         Routine for connecting to the websocket. 
         """
+        await asyncio.sleep(2.0)
         for attempt in range(retries):
             try:
                 self._ws = await websockets.connect(self.ws_url, max_size=None)
@@ -65,10 +68,14 @@ class DemoClient:
         """
         Adjust server processing parameters at any time.
         """
+        print(config)
+        seq = config.pop("sequence")
+        self.coding_config["geoQP"] = config["geoQP"]
+        self.coding_config["attQP"] = config["attQP"]
         await self._send_json({
             "type": "AdjustConfig",
-            "coding_config": config,
-            "sequence": "longdress",
+            "coding_config": self.coding_config,
+            "sequence": seq,
         })
 
     def _handle_decoded_frames(self, decoded):
@@ -93,18 +100,12 @@ class DemoClient:
 
             self.decoder_pool.submit(msg)
 
-            # TODO Dummy config adjustment
-            coding_config = self.coding_config.copy()
-            coding_config["geoQP"] = 16
-            coding_config["attQP"] = 22
-            await self.adjust_config(coding_config)
-
 
     async def run(self):
         """Entry point: connect, send initial config, receive frames."""
         # Setup
         await self._connect()
-        await self.adjust_config(self.coding_config)
+        #await self.adjust_config(self.coding_config)
 
         # Run the loop
         await self._recv_data()
@@ -123,7 +124,20 @@ if __name__ == "__main__":
         rate_config = yaml.safe_load(f)
 
     base_config.update(rate_config)
-    asyncio.run(DemoClient(
-        url,
-        base_config
-        ).run())
+    base_config["sequence"] = "loot"
+    client = DemoClient( url, base_config)
+
+    app, socketio = create_flask_app(client)
+    threading.Thread(
+        target=lambda: socketio.run(
+            app, 
+            host="0.0.0.0", 
+            port=5000,
+            allow_unsafe_werkzeug=True,
+            use_reloader=False,
+        ),
+        daemon=True
+    ).start()
+
+    # Run the client
+    asyncio.run(client.run())

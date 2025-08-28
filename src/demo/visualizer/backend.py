@@ -19,9 +19,10 @@ async def handler(websocket):
             data = await zmq_socket.recv()
             
             # Send  data to WebSocket client
+            websocket.send(data)
             asyncio.create_task(websocket.send(data))  
             done_time = time.time()
-            print("[Vis] RUNNING in {} s".format(done_time - start_time), flush=True)
+            #print("[Vis] RUNNING in {} s".format(done_time - start_time), flush=True)
 
     except websocket.exceptions.ConnectionClosed:
         print("Client disconnected")

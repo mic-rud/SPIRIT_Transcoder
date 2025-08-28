@@ -84,9 +84,10 @@ class TranscodingService:
         await loop.run_in_executor(None, self._process, in_path, out_path, config["coding_config"])
 
         try:
+            print(out_path)
             if self.client and os.path.exists(out_path):
                 print(out_path)
-                with open(in_path, "rb") as f: # TODO should be out path
+                with open(out_path, "rb") as f: # TODO should be out path
                     data = f.read()
                 self.log(f"Sending {len(data)} bytes for segment {segment_index}")
        

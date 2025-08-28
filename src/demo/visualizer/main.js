@@ -1,19 +1,29 @@
 import * as THREE from 'three';
-//import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
 
-// Initialize Scene, Camera, Renderer
+
+// SCENE
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xdddddd);
 
+// CAMERA
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);
 camera.position.set(0, 1, 3); // Position the camera for VR
 
+
+// RENDERER
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-//renderer.xr.enabled = true; // Enable WebXR for VR functionality
 document.body.appendChild(renderer.domElement);
-//document.body.appendChild(VRButton.createButton(renderer));
+
+// WEBXR
+renderer.xr.enabled = true; // Enable WebXR for VR functionality
+document.body.appendChild(VRButton.createButton(renderer));
+// Movement variables
+const movementSpeed = 0.05; // Adjust the speed of movement
+const direction = new THREE.Vector3(); // To calculate movement direction
+const quaternion = new THREE.Quaternion(); // To rotate based on the headset's orientation
 
 
 // Add OrbitControls
@@ -24,77 +34,73 @@ controls.screenSpacePanning = false; // Prevent panning up and down
 controls.minDistance = 0.5; // Minimum zoom distance
 controls.maxDistance = 10; // Maximum zoom distance
 
-// Movement variables
-const movementSpeed = 0.05; // Adjust the speed of movement
-const direction = new THREE.Vector3(); // To calculate movement direction
-const quaternion = new THREE.Quaternion(); // To rotate based on the headset's orientation
+// Set up WebSocket to receive point cloud data
+const ws = new WebSocket(`ws://${window.location.hostname}:8765`);
+ws.binaryType = "arraybuffer"; // Receive data as an ArrayBuffer
 
- // Set up WebSocket to receive point cloud data
- //const ws = new WebSocket('ws://localhost:8765');
- const ws = new WebSocket(`ws://${window.location.hostname}:8765`);
+// Geometry
+let dynamicGeometry = new THREE.BufferGeometry();
+const material = new THREE.PointsMaterial({ size: 0.025, vertexColors: true });
+const points = new THREE.Points(dynamicGeometry, material);
+let maxPoints = 300000; // Throttle with 300 000 intial points
+scene.add(points);
 
- ws.binaryType = "arraybuffer"; // Receive data as an ArrayBuffer
- let dynamicGeometry = null;
+// Intialize with maxPoints
+dynamicGeometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(new Float32Array(maxPoints * 3), 3)
+);
+dynamicGeometry.setAttribute(
+    'color',
+    new THREE.Uint8BufferAttribute(new Uint8Array(maxPoints * 3), 3, true)
+);
 
 
- ws.onopen = () => {
-     console.log('Connected to WebSocket server');
- };
+let gotNewFrame = false;
 
- ws.onmessage = (event) => {
-    const buffer = event.data; // Received binary data
+const pointSize = 2 * 3; // 3 * float16
+const colorSize = 3;     // 3 * uint8
+const stride = pointSize + colorSize;
 
-    // Constants based on known data structure
-    const pointSize = 4 * 3; // Each point: 3 float32 (4 bytes each)
-    const colorSize = 1 * 3; // Each color: 3 uint8 (1 byte each)
-    const bytesPerPoint = pointSize + colorSize;
+ws.onopen = () => {
+    console.log('Connected to WebSocket server');
+};
 
-    // Calculate number of points
-    const pointCount = buffer.byteLength / bytesPerPoint;
+// WebSocket receiving loop
+ws.onmessage = (event) => {
+    const buffer = event.data;
+    let pointCount = buffer.byteLength / stride;
 
     if (!Number.isInteger(pointCount)) {
-        console.error("Data size does not match point cloud structure. Check your server data.");
+        console.error("Invalid data size");
         return;
     }
 
-    // Extract points and colors directly from the buffer
-    const float32Array = new Float32Array(buffer, 0, pointCount * 3); // Points
-    const colorOffset = pointCount * 12;
-    const uint8Array = new Uint8Array(buffer, colorOffset, pointCount * 3); // Colors
-    const normalizedColors = new Float32Array(uint8Array.length);
-    for (let i = 0; i < uint8Array.length; i++) {
-        normalizedColors[i] = 1 - (uint8Array[i] / 255); // Normalize to [0, 1]
+    // Allocate buffers if point count grows
+    if (pointCount > maxPoints) {
+        pointCount = maxPoints;
     }
 
-    // Apply scaling to fit the point cloud in the camera's view
-    const scaleFactor = 0.006;  // Scale down the point cloud
-    for (let i = 0; i < float32Array.length; i++) {
-        float32Array[i] *= scaleFactor; // Scale coordinates
+    // Decode positions (float16 to float32)
+    const uint16Array = new Uint16Array(buffer, 0, pointCount * 3);
+    const positions = dynamicGeometry.getAttribute('position').array;
+    for (let i = 0; i < uint16Array.length; i++) {
+        positions[i] = THREE.DataUtils.fromHalfFloat(uint16Array[i]) * 0.006; 
     }
 
-    // Create or update geometry
-    if (!dynamicGeometry) {
-        dynamicGeometry = new THREE.BufferGeometry();
-        const material = new THREE.PointsMaterial({
-            size: 0.025,
-            vertexColors: true,
-        });
-        const points = new THREE.Points(dynamicGeometry, material);
-        scene.add(points);
-    }
+    // Copy colors directly, normalized in shader
+    const colorOffset = pointCount * 6;
+    const colors = new Uint8Array(buffer, colorOffset, pointCount * 3);
+    dynamicGeometry.getAttribute('color').array.set(colors);
 
-    // Update attributes dynamically
-    dynamicGeometry.setAttribute('position', new THREE.Float32BufferAttribute(float32Array, 3));
-    dynamicGeometry.setAttribute('color', new THREE.Float32BufferAttribute(normalizedColors, 3));
+    // Set draw range to the actual number of points
+    dynamicGeometry.setDrawRange(0, pointCount);
 
-    // Notify Three.js of the changes
     dynamicGeometry.attributes.position.needsUpdate = true;
     dynamicGeometry.attributes.color.needsUpdate = true;
 
-    // Optionally center the cloud
-    centerPointCloud();
+    gotNewFrame = true;
 };
-
 
 
 let initialCenter = null; // To store the center for the first frame
@@ -120,26 +126,17 @@ function centerPointCloud() {
 
 
 // FPS counting
-let lastFrame = performance.now()
-let fps = 0;
-const alpha = 0.1;
+let minFrameTimeMs = 1000 / 60;
+let lastRender = 0;
 
-// Animate and Render Scene
-function animate() {
-    renderer.setAnimationLoop(() => {
-        const now = performance.now();
-        const delta = (now - lastFrame) / 1000;
-        lastFrame = now;
+renderer.setAnimationLoop((nowMs) => {
+    controls.update(); // smooth even at high XR FPS
 
-        const currentFPS = 1/delta;
-        fps = fps * (1-alpha) + currentFPS * alpha;
-        console.log('[VISUALZIER] FPS ${fps.toFixed(2)}');
-
-        requestAnimationFrame(animate);
-        controls.update();
+    // Throttle to incoming WebSocket FPS OR render whenever a new frame arrives
+    //if ((gotNewFrame && nowMs - lastRender >= minFrameTimeMs) || renderer.xr.isPresenting) {
+    if ((gotNewFrame && nowMs - lastRender >= minFrameTimeMs) ) {
         renderer.render(scene, camera);
-    });
-}
-
-// Start Preloading Models, Setup Controllers, and Animation
-animate();
+        lastRender = nowMs;
+        gotNewFrame = false;
+    }
+});

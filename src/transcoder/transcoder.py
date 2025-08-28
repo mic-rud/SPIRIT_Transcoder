@@ -28,7 +28,7 @@ class Transcoder:
         print(os.path.exists(in_stream))
         # Load and Parse Bitstream
         if type(in_stream) is str:
-            context = self.bitstreamIO.read_bitstream(in_stream, trace=True)
+            context = self.bitstreamIO.read_bitstream(in_stream, trace=False)
         else: 
             raise TypeError("Parsing from memory not yet implemented")
 
