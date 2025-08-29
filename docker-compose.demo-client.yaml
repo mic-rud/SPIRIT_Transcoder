@@ -1,0 +1,39 @@
+version: "3.9"
+
+networks:
+  zmq_net: {}
+
+services:
+  client:
+    build:
+      context: .
+      dockerfile: docker/DemoClientMac.Dockerfile
+    container_name: demo-client
+    volumes:
+      - ./data:/app/data:z
+      - ./configs:/app/configs:z
+      - ./results:/app/results:z
+      - ./scripts:/app/scripts:z
+      - ./src:/app/src:z
+    environment:
+      WS_URL: ws://192.168.1.10:8000/ws
+      ZMQ_PUSH_SOCKET: tcp://visualizer:5556
+    ports:
+      - "5000:5000"
+    networks:
+      - zmq_net
+    restart: unless-stopped
+
+  visualizer:
+    build:
+      context: ./src/demo/visualizer
+      dockerfile: ../../../docker/DemoVisualizer.Dockerfile
+    container_name: visualizer
+    ports:
+      - "5173:5173"
+      - "8765:8765"
+    environment:
+      ZMQ_PULL_SOCKET: tcp://*:5556
+    networks:
+      - zmq_net
+    restart: unless-stopped

@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  server:
+    build:
+      context: .
+      dockerfile: docker/DemoServerMac.Dockerfile
+    container_name: demo-server
+    volumes:
+      - ./data:/app/data:z
+      - ./configs:/app/configs:z
+      - ./results:/app/results:z
+      - ./scripts:/app/scripts:z
+      - ./src:/app/src:z
+    ports:
+      - "8000:8000"  
+    command: ["python3", "/app/src/run_demo_server.py"]
+    restart: unless-stopped
