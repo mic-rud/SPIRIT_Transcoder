@@ -4,6 +4,7 @@ import os
 
 from pydantic import BaseModel
 from typing import Optional, List, Tuple, Dict
+import msgpack
 
 class WSCommand(BaseModel):
     type: str
@@ -52,10 +53,7 @@ class TranscodingService:
     def _process(self, in_path: str, out_path: str, config: Dict):
         """Run the transcoding process."""
         try:
-            self.log("Starting transcoder")
-            self.log(f"{self.worker} transcoder")
             self.worker.transcode(in_path, out_path, config)
-            self.log("Transcoder done")
         except Exception as e:
             self.log(f"Transcoder FAILED: {e}")
 
@@ -81,17 +79,18 @@ class TranscodingService:
 
         # Processing
         loop = asyncio.get_running_loop()
+        t_start = time.time()
         await loop.run_in_executor(None, self._process, in_path, out_path, config["coding_config"])
+        t_transcode = time.time() - t_start
 
         try:
-            print(out_path)
             if self.client and os.path.exists(out_path):
-                print(out_path)
-                with open(out_path, "rb") as f: # TODO should be out path
+                with open(out_path, "rb") as f: 
                     data = f.read()
-                self.log(f"Sending {len(data)} bytes for segment {segment_index}")
        
-                await self.client.send_bytes(data)
+                payload = msgpack.packb({"t_transcode": t_transcode, "data": data}, use_bin_type=True)
+
+                await self.client.send_bytes(payload)
             else:
                 self.log(f"Failed sending segment {segment_index}")
 
@@ -121,8 +120,6 @@ class TranscodingService:
 
             # Timekeeping
             end_time = time.monotonic()
-            duration = end_time - start_time
-            self.log(f"Transcoded in {duration:3f} s")
             sleep_time = max(0, segment_start_time + self.segment_duration - end_time)
             await asyncio.sleep(sleep_time)
 

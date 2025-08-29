@@ -3,11 +3,11 @@ occEncThreads: 2
 occEncodingMode: "AI" # AI or RA
 
 geoPreset: ultrafast
-geoEncThreads: 1
+geoEncThreads: 2
 geoEncodingMode: "AI"
 geoQP: 32
 
 attPreset: ultrafast
-attEncThreads: 1
+attEncThreads: 2
 attEncodingMode: "AI"
 attQP: 42

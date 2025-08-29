@@ -5,7 +5,7 @@ import { VRButton } from 'three/addons/webxr/VRButton.js';
 
 // SCENE
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xdddddd);
+scene.background = new THREE.Color(0x888888);
 
 // CAMERA
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);

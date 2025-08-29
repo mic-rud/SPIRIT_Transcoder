@@ -5,6 +5,7 @@ import json
 import os
 import yaml
 import websockets
+import msgpack
 import threading
 import multiprocessing as mp
 from typing import Optional, Dict, Any
@@ -14,6 +15,37 @@ from decoder import DecoderPool
 from gui.backend import create_flask_app
 
 
+class Metrics:
+    def __init__(self):
+        self.t_transcode = {}
+        self.t_decode = {}
+        self.bandwidth = {}
+
+    def get_metrics(self, idx):
+        if any(idx not in x.keys() for x in (self.t_decode, self.t_transcode, self.bandwidth)):
+            return None
+
+        t_transcode = self.t_transcode.pop(idx) if idx in self.t_transcode.keys() else None
+        t_decode = self.t_decode.pop(idx) if idx in self.t_decode.keys() else None
+        bandwidth = self.bandwidth.pop(idx) if idx in self.bandwidth.keys() else None
+
+        metrics = {
+            "t_transcode": t_transcode,
+            "t_decode": t_decode,
+            "bandwidth": bandwidth,
+        }
+
+        return metrics
+
+    def set_t_transcode(self, idx, t_transcode):
+        self.t_transcode[idx] = t_transcode
+
+    def set_t_decode(self, idx, t_decode):
+        self.t_decode[idx] = t_decode
+
+    def set_bandwidth(self, idx, bandwidth):
+        self.bandwidth[idx] = bandwidth
+        
 
 class DemoClient:
     def __init__(
@@ -25,8 +57,10 @@ class DemoClient:
         self.coding_config = coding_config 
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
 
+        self.metrics = Metrics()
+
         # Decoder
-        self.decoder_pool = DecoderPool(num_workers=6)
+        self.decoder_pool = DecoderPool(num_workers=4, metrics=self.metrics)
         self.decoder_pool.start()
 
         # Player
@@ -39,7 +73,7 @@ class DemoClient:
 
 
     def _start_player(self, buffer):
-        player = Player(buffer, ws_port=8765, target_fps=30)
+        player = Player(buffer, ws_port=8765, target_fps=15)
         player.start()
 
     async def _connect(self, retries=10):
@@ -68,19 +102,16 @@ class DemoClient:
         """
         Adjust server processing parameters at any time.
         """
-        print(config)
         seq = config.pop("sequence")
         self.coding_config["geoQP"] = config["geoQP"]
         self.coding_config["attQP"] = config["attQP"]
+
         await self._send_json({
             "type": "AdjustConfig",
             "coding_config": self.coding_config,
             "sequence": seq,
         })
 
-    def _handle_decoded_frames(self, decoded):
-        for frame in decoded:
-            self.buffer.add_frame(frame)
 
     async def _recv_data(self):
         """
@@ -88,24 +119,27 @@ class DemoClient:
         """
         count = 0
         while True:
-            print("[client] Waiting for a new message", flush=True)
-            msg = await self._ws.recv()
-            print("[Client] Receive timestamp {}".format(time.time()))
+            payload = await self._ws.recv()
 
-            if not isinstance(msg, bytes):
-                print(f"[Client] got JSON: {msg}", flush=True)
+            if not isinstance(payload, bytes):
                 continue
             
+            msg = msgpack.unpackb(payload, raw=False)
+            data = msg["data"]
+            t_transcode = msg["t_transcode"]
+
+            self.metrics.set_t_transcode(count, t_transcode)
+            self.metrics.set_bandwidth(count, len(data))
+
             count += 1
 
-            self.decoder_pool.submit(msg)
+            self.decoder_pool.submit(data)
 
 
     async def run(self):
         """Entry point: connect, send initial config, receive frames."""
         # Setup
         await self._connect()
-        #await self.adjust_config(self.coding_config)
 
         # Run the loop
         await self._recv_data()

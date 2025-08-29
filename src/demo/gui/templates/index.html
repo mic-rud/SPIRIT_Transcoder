@@ -2,10 +2,14 @@
 <html>
 <head>
     <title>Demo Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js" defer></script>
+  <script src="{{ url_for('static', filename='socket.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='charts.js') }}" defer></script>
 </head>
 <body>
-    <h1>Adjust Config</h1>
+    <h1>Transcoder Settings</h1>
     <label for="sequence">Sequence:</label>
     <select id="sequence">
         <option value="longdress">longdress</option>
@@ -13,7 +17,6 @@
     </select>
     <br><br>
 
-    <!-- Sliders -->
     <label for="geoQP">geoQP: <span id="geoQPValue">24</span></label>
     <input id="geoQP" type="range" min="0" max="51" step="1" value="29" oninput="updateSliderValue('geoQP')">
     <br><br>
@@ -24,29 +27,9 @@
 
     <button onclick="adjustConfig()">Apply Config</button>
 
-    <h1>Demo Metrics</h1>
-    <p>Bandwidth: <span id="bandwidth">0</span> KB/s</p>
-    <p>Points: <span id="points">0</span></p>
-    <p>Latencies: <span id="latencies">[]</span></p>
+    <h1>Performance Monitor</h1>
+    <canvas id="timesChart" width="800" height="300"></canvas>
+    <canvas id="bandwidthChart" width="800" height="300"></canvas>
 
-
-    <script>
-        const socket = io();
-
-        // Updates displayed value next to the slider
-        function updateSliderValue(id) {
-            const slider = document.getElementById(id);
-            document.getElementById(id + "Value").textContent = slider.value;
-        }
-
-        // Send updated config to backend
-        function adjustConfig() {
-            const geoQP = parseInt(document.getElementById("geoQP").value);
-            const attQP = parseInt(document.getElementById("attQP").value);
-            const sequence = document.getElementById("sequence").value;
-
-            socket.emit("adjust_config", { sequence, geoQP, attQP });
-        }
-    </script>
 </body>
 </html>

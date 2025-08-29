@@ -4,7 +4,7 @@ networks:
 
 services:
   server:
-    #attach: false
+    attach: false
     build: 
       context: .
       dockerfile: docker/DemoServerMac.Dockerfile

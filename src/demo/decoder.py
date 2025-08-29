@@ -19,8 +19,10 @@ def decode_fn(msg: bytes, max_frames: int = 15):
         })
     decoder.close()
     end_time = time.time()
+
     print("[Decoder] Decoded in {} s ".format(end_time - start_time), flush=True)
-    return frames
+    t_decode = end_time - start_time
+    return frames, t_decode
 
 
 def _worker_loop(in_q, result_queue):
@@ -30,24 +32,28 @@ def _worker_loop(in_q, result_queue):
             break
         task_id, msg = item
         try:
-            frames = decode_fn(msg)
-            result_queue.put((task_id, frames))
+            frames, t_decode = decode_fn(msg)
+            result_queue.put((task_id, t_decode, frames))
         except Exception as e:
             print(f"[Decoder Worker] Error: {e}", flush=True)
 
 
 class DecoderPool:
-    def __init__(self, num_workers):
+    def __init__(self, num_workers, metrics):
         self.in_queue = multiprocessing.Queue(32)
         self.result_queue = multiprocessing.Queue(32)
         self.out_queue = multiprocessing.Queue(300)
+
+        self.num_workers = num_workers
         self.procs = []
         self.next_task_id = 0
         self.expected_task_id = 0
+
         self.buffer = {}
-        self.num_workers = num_workers
         self.sorter_thread = None
         self.running = False
+
+        self.metrics = metrics
 
     def start(self):
         self.running = True
@@ -82,8 +88,9 @@ class DecoderPool:
         and releases frames to out_queue in task order.
         """
         while self.running:
-            task_id, frames = self.result_queue.get()
+            task_id, t_decode, frames = self.result_queue.get()
             self.buffer[task_id] = frames
+            self.metrics.set_t_decode(task_id, t_decode)
 
             # Emit all ready tasks in order
             while self.expected_task_id in self.buffer:
@@ -91,3 +98,4 @@ class DecoderPool:
                 for frame in frames:
                     self.out_queue.put((self.expected_task_id, frame))
                 self.expected_task_id += 1
+            time.sleep(0.1)
