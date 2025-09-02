@@ -1,12 +1,26 @@
-## Setup
+# Overview
 
+This repository contains code for the experiments of the SPIRIT Project "RABBTI@Scale: Exploring Real-Time Transcoding as a Service". 
+Further, the repository also contains the showcase Demo at the EuroXR'25 conference.
+
+# Table of Contents
+
+- [Setup](#setup)
+- [Stand-alone Transcoder](#Transcoder)
+- [Experiments](#Experiments)
+- [Demo](#Demo)
+- [Further Information](#further-information)
+
+# Setup
 All you need is docker, and just to make your life easier.
+
 ```
 snap install --edge --classic just
 ```
 just can be installed through a number of ways, check out their github for alternatives.
 
-### Building the container
+# Transcoder
+## Building the container
 The just file wraps the transcoder container
 ```
 just build-transcoder
@@ -23,8 +37,9 @@ You can easily decode a bitstream with V-PCC using
 just decode FILEPATH
 ```
 
+# Experiments
 
-## Test Data
+### Test Data
 Setting up requires you to pre-encode some data.
 First, download some data using
 ```
@@ -35,54 +50,33 @@ Then, in the docker container:
   ./scripts/prepare_data.sh
 ```
 
-## Demo
-We include code for the demo at the XX conference here:
+# Demo
+We include code for the demo at the EuroXR'25 conference in this repository. 
+To showcase our system on consumer hardware, we use a downsampled variant of the point cloud content. 
 
-To showcase our system on lower end hardware, we use a downsampled variant of the point cloud.
-It can be prepared from the 8iVFBv2 dataset (see above section for a download script) with the following code:
-
-
-
-----
-## Overview of scripts
-
-In the scripts folder, we provide a number of scripts to ease development.
-
-DESCRIBE
-
-----
-## Setup
-Setup a virtual environment
-
-We need pybindings
+## Running the Demo.
+### 1 Device
+If you want to run the Demo on one device, you can start it with
 ```
-python -m pip install -r requirements.txt
-sudo apt install build-essential cmake
+  docker compose -f docker-compose.demo.yaml up --build
 ```
 
-Clone the VPCC tmc 2 codec:
+### 2 Devices
+If you want to run on 2 devices, make sure they are connected via ethernet and Port 8000 is opened on the server side device. Then, change the IP-Address in [docker-compose.demo-client.yaml](docker-compose.demo-client.yaml) to the IP of the server. 
+
+On the server, start the transcoder with
 ```
-cd dependencies
-git clone https://github.com/MPEGGroup/mpeg-pcc-tmc2.git
+  docker compose -f docker-compose.demo-server.yaml up --build
+```
+and on the client, run 
+```
+  docker compose -f docker-compose.demo-client.yaml up --build
 ```
 
-Create python bindings:
-```
-mkdir build && cd build
-cmake .. \
-  -DPYTHON_EXECUTABLE=$(pyenv which python) \
-  -DCMAKE_PREFIX_PATH=$(python -m pybind11 --cmakedir) 
-make 
-```
+### Visualizer and Control Pane
+The Visualizer is now available on the Client device on http://localhost:5173 and the control pane is available through http://localhost:5000
 
-## Path V-PCC
-In order to generate bindings for the Bitstream Parsing, we need to patch V-PCC
-```
-./patch.sh
-```
 
-## Sym-Link
-Add a symbolic link if the module is not found on import
-```
-ln -s /PATH/TO/build/bindings/bitstream_bindings.cpython-<pyversion>-x86_64-linux-gnu.so .venv/lib/python<pyversion>/site-packages/bitstream_bindings.so
-```
+
+# Further Information
+TBA
